@@ -14,7 +14,7 @@ class ChungTuController extends Controller
      */
     public function index()
     {
-        $chungTus = ChungTu::all();
+        $chungTus = ChungTu::with(['loaiChungTu', 'nguoiTao', 'nguoiGuiDoiTac', 'trangThai'])->get();
         return view('chungtu.index', compact('chungTus'));
     }
 
@@ -25,7 +25,10 @@ class ChungTuController extends Controller
      */
     public function create()
     {
-        return view('chungtu.create');
+        $loaiChungTus = \App\Models\LoaiChungTu::all(); // Lấy tất cả loại chứng từ
+        $trangThaiChungTus = \App\Models\TrangThaiChungTu::all(); // Lấy tất cả trạng thái chứng từ
+
+        return view('chungtu.create', compact('loaiChungTus', 'trangThaiChungTus'));
     }
 
     /**
@@ -37,34 +40,42 @@ class ChungTuController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'ma_chung_tu' => 'required|string|max:255|unique:chung_tus',
+            'tieu_de' => 'required|string|max:255',
+            'duong_dan' => 'required|string|max:255',
+            'ghi_chu' => 'nullable|string',
+            'id_loai_chung_tu' => 'required|exists:loai_chung_tus,id',
+            'nguoi_tao_id' => 'nullable|exists:users,id',
+            'nguoi_gui_doi_tac_id' => 'nullable|exists:doi_tacs,id',
+            'trang_thai_id' => 'required|exists:trang_thai_chung_tus,id',
         ]);
 
         $chungTu = ChungTu::create($validatedData);
 
-        return response()->json($chungTu, 201);
+        return redirect()->route('chungtu.index')->with('success', 'Chứng từ được tạo thành công.');
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\ChungTu  $chungTu
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(ChungTu $chungTu)
+    public function show($id)
     {
-        return response()->json($chungTu);
+        $chungTu = ChungTu::findOrFail($id);
+        return view('chungtu.show', compact('chungTu'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\ChungTu  $chungTu
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit(ChungTu $chungTu)
+    public function edit($id)
     {
+        $chungTu = ChungTu::findOrFail($id);
         return view('chungtu.edit', compact('chungTu'));
     }
 
@@ -78,25 +89,32 @@ class ChungTuController extends Controller
     public function update(Request $request, ChungTu $chungTu)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'ma_chung_tu' => 'required|string|max:255|unique:chung_tus,ma_chung_tu,' . $chungTu->id,
+            'tieu_de' => 'required|string|max:255',
+            'duong_dan' => 'required|string|max:255',
+            'ghi_chu' => 'nullable|string',
+            'id_loai_chung_tu' => 'required|exists:loai_chung_tus,id',
+            'nguoi_tao_id' => 'nullable|exists:users,id',
+            'nguoi_gui_doi_tac_id' => 'nullable|exists:doi_tacs,id',
+            'trang_thai_id' => 'required|exists:trang_thai_chung_tus,id',
         ]);
 
         $chungTu->update($validatedData);
 
-        return response()->json($chungTu);
+        return redirect()->route('chungtu.index')->with('success', 'Chứng từ được cập nhật thành công.');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\ChungTu  $chungTu
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ChungTu $chungTu)
+    public function destroy($id)
     {
+        $chungTu = ChungTu::findOrFail($id);
         $chungTu->delete();
 
-        return response()->json(['message' => 'Deleted successfully']);
+        return redirect()->route('chungtu.index')->with('success', 'Chứng từ đã được xóa thành công.');
     }
 }

@@ -89,6 +89,7 @@ Route::get('/chungtu/{chungtu}', [ChungTuController::class, 'show'])->name('chun
 
 
 //trangthaitrungtu
+
 Route::get('/trangthaichungtu', [TrangThaiChungTuController::class, 'index'])->name('trangthaichungtu.index');
 Route::get('/trangthaichungtu/create', [TrangThaiChungTuController::class, 'create'])->name('trangthaichungtu.create');
 Route::post('/trangthaichungtu', [TrangThaiChungTuController::class, 'store'])->name('trangthaichungtu.store');
@@ -96,30 +97,6 @@ Route::get('/trangthaichungtu/{trangthaichungtu}/edit', [TrangThaiChungTuControl
 Route::put('/trangthaichungtu/{trangthaichungtu}', [TrangThaiChungTuController::class, 'update'])->name('trangthaichungtu.update');
 Route::delete('/trangthaichungtu/{trangthaichungtu}', [TrangThaiChungTuController::class, 'destroy'])->name('trangthaichungtu.destroy');
 Route::get('/trangthaichungtu/{trangthaichungtu}', [TrangThaiChungTuController::class, 'show'])->name('trangthaichungtu.show');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
