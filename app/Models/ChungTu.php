@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class ChungTu extends Model
 {
@@ -63,4 +65,18 @@ class ChungTu extends Model
     {
         return $this->belongsTo(\App\Models\TrangThaiChungTu::class, 'trang_thai_id');
     }
+    public function getFullStoragePathAttribute()
+    {
+        // Lấy mã loại chứng từ, nếu không có thì gán 'khac'
+        $maLoai = $this->loaiChungTu->ma_loai_chung_tu;
+
+        // Lấy ngày cập nhật (ưu tiên updated_at), fallback = now()
+        $updated = $this->updated_at ?? now();
+        $year = Carbon::parse($updated)->format('Y');
+        $month = Carbon::parse($updated)->format('m');
+
+        // Kết hợp đường dẫn: storage/<ma_loai>/<năm>/<tháng>/<tên file>
+        return "storage/{$maLoai}/{$year}/{$month}/{$this->duong_dan}";
+    }
+
 }

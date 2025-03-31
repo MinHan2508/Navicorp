@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\ChungTuController;
 use App\Http\Controllers\TrangThaiChungTuController;
+use App\Http\Controllers\DoiTacController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -51,6 +52,20 @@ Route::get('/users/profile', [UserController::class, 'show'])->name('users.profi
 //Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 //Route::get('/users/import', [UserController::class, 'showImportForm'])->name('users.import.form');
 //Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
+
+//khai báo đường dẫn ảnh thẻ
+Route::get('/avatar/{filename}', function ($filename) {
+    $path = storage_path('app/img/anhthe/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path); // hoặc ->download($path)
+})->name('user.avatar');
+
+
+
 //phongban
 Route::get('/phongban', [PhongBanController::class, 'index'])->name('phongban.index');
 Route::get('/phongban/create', [PhongBanController::class, 'create'])->name('phongban.create');
@@ -86,6 +101,11 @@ Route::get('/chungtu/{chungtu}/edit', [ChungTuController::class, 'edit'])->name(
 Route::put('/chungtu/{chungtu}', [ChungTuController::class, 'update'])->name('chungtu.update');
 Route::delete('/chungtu/{chungtu}', [ChungTuController::class, 'destroy'])->name('chungtu.destroy');
 Route::get('/chungtu/{chungtu}', [ChungTuController::class, 'show'])->name('chungtu.show');
+// routes/web.php
+
+// xem thông tin file
+Route::get('/chungtu/view-file/{id}', [\App\Http\Controllers\ChungTuController::class, 'viewFile'])
+    ->name('chungtu.viewFile');
 
 
 //trangthaitrungtu
@@ -99,7 +119,15 @@ Route::delete('/trangthaichungtu/{trangthaichungtu}', [TrangThaiChungTuControlle
 Route::get('/trangthaichungtu/{trangthaichungtu}', [TrangThaiChungTuController::class, 'show'])->name('trangthaichungtu.show');
 
 
-
+//doitac
+Route::get('/doitac', [\App\Http\Controllers\DoiTacController::class, 'index'])->name('doitac.index');
+Route::get('/doitac/create', [\App\Http\Controllers\DoiTacController::class, 'create'])->name('doitac.create');
+Route::post('/doitac', [\App\Http\Controllers\DoiTacController::class, 'store'])->name('doitac.store');
+Route::get('/doitac/{doitac}/edit', [\App\Http\Controllers\DoiTacController::class, 'edit'])->name('doitac.edit');
+Route::put('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'update'])->name('doitac.update');
+Route::delete('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'destroy'])->name('doitac.destroy');
+Route::get('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'show'])->name('doitac.show');
+//Route::get('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'show'])->name('doitac.show');
 
 
 //nhanvien

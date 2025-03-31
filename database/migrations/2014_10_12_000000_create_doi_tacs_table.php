@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('dia_chi')->nullable();
             $table->string('sdt', 20)->nullable()->unique();
             $table->string('email', 100)->nullable()->unique();
-            $table->enum('loai_doi_tac', ['Cá nhân', 'Tổ chức']);
+            $table->enum('loai_doi_tac', ['Cá nhân', 'Tổ chức','Nhà Nước', 'Khác']);
             $table->timestamps();
         });
     }

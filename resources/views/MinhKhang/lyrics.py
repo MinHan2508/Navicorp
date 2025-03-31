@@ -2,29 +2,31 @@ import sys
 import time
 
 lyrics = [
-    "",
-    "♪ Mong em sẽ giữ mãi nụ cười",
-    "♪ Toả nắng rạng ngời",
-    "♪ Làm tan biến áng mây đen",
-    "♪ Làm anh ngỡ như say men",
-    "♪ Sẽ nhớ mãi một thời",
-    "♪ Từng ước muốn trọn đời",
-    "♪ Dù tình ta đã phôi phai",
-    "♪ Dù một mai em có bên ai",
-    "",
-    "😇😇😇",
-    "",
-    "",
+    "•—•—•—•—• ♬ •—•—•—•—•",
+    "🎵😇 Phiêu du mây xanh",
+    "♫ Thôi đem giấc mơ ấy cho người yêu em thay anh",
+    "🎶 Anh cũng biết đau trái tim kia đâu phải cỗ máy",
+    "♩ Mà giấu suy tư từng giây",
+    "🎼 Vì đời vốn là đâu như trông mong, ta là câu chuyện song song",
+    "♪ Nên đành giấu tâm tư này trong lòng",
+    "🎧 Em đánh mất đi người bạn tồi",
+    "😔 Còn anh đánh mất đi cả bầu trời",
+    "•—•—•—•—• ♬ •—•—•—•—•",
 ]
 
-def typewriter_effect(text, delay=0.05):
-    for char in text:
-        sys.stdout.write(char)
+def fade_in_text(text, delay=0.106, steps=15, pause=1.676):
+    for i in range(1, steps + 1):
+        brightness = int(255 * i / steps)
+        color = f"\033[38;2;{brightness};{brightness};{brightness}m"
+        sys.stdout.write(f"\r{color}{text}\033[0m")
         sys.stdout.flush()
         time.sleep(delay)
-    print()  # Xuống dòng sau khi in xong mỗi câu
+    print()
+    time.sleep(pause)
 
-for line in lyrics:
-    typewriter_effect(line, delay=0.05)
-    time.sleep(0.6)  # Nghỉ một chút giữa các dòng
+def main():
+    for line in lyrics:
+        fade_in_text(line)
 
+if __name__ == "__main__":
+    main()

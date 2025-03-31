@@ -16,6 +16,8 @@
                     <th>Tiêu Đề</th>
                     <th>Loại Chứng Từ</th>
                     <th>Trạng Thái</th>
+                    <th>Người Tạo</th>
+                    <th>Ngày Tạo</th>
                     <th>Hành động</th>
                 </tr>
             </thead>
@@ -27,6 +29,8 @@
                     <td>{{ $chungTu->tieu_de }}</td>
                     <td>{{ $chungTu->loaiChungTu->ten_loai_chung_tu ?? 'N/A' }}</td>
                     <td>{{ $chungTu->trangThai->ten_trang_thai ?? 'N/A' }}</td>
+                    <td>{{ $chungTu->nguoiTao->name ?? 'N/A' }} - {{ $chungTu->nguoiTao->email ?? 'N/A' }}</td>
+                    <td>{{ $chungTu->created_at->format('d/m/Y') }}</td>
                     <td>
                         <a href="{{ route('chungtu.show', $chungTu->id) }}" class="btn btn-info btn-sm">Xem</a>
                         <a href="{{ route('chungtu.edit', $chungTu->id) }}" class="btn btn-warning btn-sm">Sửa</a>

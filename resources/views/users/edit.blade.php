@@ -68,13 +68,11 @@
             <div class="row mt-3 align-items-start">
                 <div class="col-md-6 text-center">
                     <label class="form-label fw-semibold d-block">Ảnh hiện tại</label>
-                    @if($user->anh)
-                        <img src="{{ asset('storage/img/anhthe/' . basename($user->anh)) }}" 
-                            alt="Ảnh đại diện" 
-                            class="img-thumbnail rounded" 
-                            style="max-width: 150px;">
+                    @if ($user->anh)
+                        <img src="{{ route('user.avatar', basename($user->anh)) }}" 
+                            alt="Ảnh đại diện" width="140" height="210">
                     @else
-                        <span class="text-muted">Chưa có ảnh</span>
+                        <span class="text-muted">Cập nhật ảnh</span>
                     @endif
                 </div>
 

@@ -14,6 +14,7 @@
         <table class="table table-hover table-bordered text-center align-middle">
             <thead class="table-primary">
                 <tr>
+                    <th>TT</th>
                     <th>Tên</th>
                     <th>Email</th>
                     <th>Vai trò</th>
@@ -29,6 +30,7 @@
             <tbody>
                 @foreach($users as $user)
                 <tr>
+                <td>{{ $loop->iteration }}</td> {{-- Cột STT --}}
                     <td>{{ $user->name }}</td>
                     <td>{{ $user->email }}</td>
                     <td><span class="badge bg-info text-dark">{{ $user->vaitro }}</span></td>
@@ -36,14 +38,12 @@
                     <td>{{ $user->dia_chi }}</td>
                     <td>{{ ucfirst($user->gioi_tinh) }}</td>
                     <td> 
-                        @if($user->anh)
-                        
-                        <img src="{{ asset('storage/img/anhthe/' . basename($user->anh)) }}" 
-                                alt="Ảnh đại diện" 
-                              width="70" height="105"> 
-                        @else
-                            <span class="text-muted">Cập nhật ảnh</span>
-                        @endif
+                    @if ($user->anh)
+                        <img src="{{ route('user.avatar', basename($user->anh)) }}" 
+                            alt="Ảnh đại diện" width="70" height="105">
+                    @else
+                        <span class="text-muted">Cập nhật ảnh</span>
+                    @endif
                     </td>
                     <td>
                         @if($user->phongBans->isNotEmpty())

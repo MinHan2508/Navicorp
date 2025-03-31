@@ -69,7 +69,7 @@
                 <li><a href="{{ route('users.index') }}"><i class="bi bi-person"></i><span>Người dùng</span></a></li>
                 <li><a href="{{ route('phancong.index') }}"><i class="bi bi-key"></i><span> Phân Công</span></a></li>
                 
-                <li><a href="#"><i class="bi bi-bank"></i><span>Đối Tác</span></a></li>
+                <li><a href="{{ route('doitac.index') }}"><i class="bi bi-bank"></i><span>Đối Tác</span></a></li>
                 <li><a href="{{ route('phongban.index') }}"><i class="bi bi-bank"></i><span>Phòng Ban</span></a></li>
                 <li><a href="{{ route('loaichungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Loại Chứng từ</span></a></li>
                 <li><a href="{{ route('trangthaichungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Trạng Thái Chứng từ</span></a></li>
