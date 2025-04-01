@@ -50,7 +50,7 @@
 
                 <div id="file-preview-content" class="border rounded mt-2 p-2 bg-light d-none">
                     @if($fileExtension === 'pdf')
-                        <iframe id="preview-frame" src="{{ $fileUrl }}" width="100%" height="600px" class="border" onload="hideLoading()"></iframe>
+                        <iframe id="preview-frame" src="{{ $fileUrl }}" width="100%" height="800px" class="border" style="transform: rotate(0deg);" onload="hideLoading()"></iframe>
                     @elseif(in_array($fileExtension, ['doc', 'docx', 'xls', 'xlsx']))
                         <iframe id="preview-frame" src="https://view.officeapps.live.com/op/embed.aspx?src={{ rawurlencode($fileUrl) }}" width="100%" height="600px" class="border" onload="hideLoading()"></iframe>
                     @else

@@ -15,4 +15,5 @@ class PhongBan extends Model
     }
     
     use HasFactory;
+    
 }

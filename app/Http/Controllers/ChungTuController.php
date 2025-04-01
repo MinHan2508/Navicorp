@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChungTu;
 use App\Models\LoaiChungTu;
 use App\Models\TrangThaiChungTu;
+use App\Models\DoiTac;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -22,8 +23,9 @@ class ChungTuController extends Controller
     {
         $loaiChungTus = LoaiChungTu::all();
         $trangThaiChungTus = TrangThaiChungTu::all();
+        $doiTacs = DoiTac::all(); // Lấy danh sách đối tác
 
-        return view('chungtu.create', compact('loaiChungTus', 'trangThaiChungTus'));
+        return view('chungtu.create', compact('loaiChungTus', 'trangThaiChungTus', 'doiTacs'));
     }
 
     public function store(Request $request)
@@ -36,9 +38,13 @@ class ChungTuController extends Controller
             'id_loai_chung_tu' => 'required|exists:loai_chung_tus,id',
             'nguoi_tao_id' => 'nullable|exists:users,id',
             'nguoi_gui_doi_tac_id' => 'nullable|exists:doi_tacs,id',
-            'trang_thai_id' => 'required|exists:trang_thai_chung_tus,id',
+            // Không cần yêu cầu trạng thái từ người dùng
         ]);
 
+        // Mặc định trạng thái là "KhoiTao" (id = 1)
+        $validatedData['trang_thai_id'] = 1;
+
+        // Xử lý file tải lên
         if ($request->hasFile('duong_dan')) {
             $file = $request->file('duong_dan');
             $now = now();
@@ -65,8 +71,9 @@ class ChungTuController extends Controller
         $chungTu = ChungTu::findOrFail($id);
         $loaiChungTus = LoaiChungTu::all();
         $trangThaiChungTus = TrangThaiChungTu::all();
+        $doiTacs = DoiTac::all(); // Lấy danh sách đối tác
 
-        return view('chungtu.edit', compact('chungTu', 'loaiChungTus', 'trangThaiChungTus'));
+        return view('chungtu.edit', compact('chungTu', 'loaiChungTus', 'trangThaiChungTus', 'doiTacs'));
     }
 
     public function update(Request $request, $id)
@@ -84,6 +91,7 @@ class ChungTuController extends Controller
             'trang_thai_id' => 'required|exists:trang_thai_chung_tus,id',
         ]);
 
+        // Xử lý file tải lên
         if ($request->hasFile('duong_dan')) {
             if ($chungTu->duong_dan && Storage::disk('local')->exists($chungTu->duong_dan)) {
                 Storage::disk('local')->delete($chungTu->duong_dan);
@@ -105,41 +113,29 @@ class ChungTuController extends Controller
         return redirect()->route('chungtu.index')->with('success', 'Chứng từ được cập nhật thành công.');
     }
 
+    public function viewFile($id)
+    {
+        $chungTu = ChungTu::with('loaiChungTu')->findOrFail($id);
 
-    // App\Http\Controllers\ChungTuController.php
-        ///xem file trục tiếp
-     
+        $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
+        $updated = $chungTu->updated_at ?? now();
+        $year = $updated->format('Y');
+        $month = $updated->format('m');
 
-        public function viewFile($id)
-        {
-            $chungTu = ChungTu::with('loaiChungTu')->findOrFail($id);
+        $filePath = "{$maLoai}/{$year}/{$month}/{$chungTu->duong_dan}";
 
-            $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
-            $updated = $chungTu->updated_at ?? now();
-            $year = $updated->format('Y');
-            $month = $updated->format('m');
-
-            $filePath = "{$maLoai}/{$year}/{$month}/{$chungTu->duong_dan}";
-
-            if (!Storage::disk('local')->exists($filePath)) {
-                abort(404, 'Không tìm thấy file');
-            }
-
-            $mimeType = Storage::disk('local')->mimeType($filePath);
-            $realPath = Storage::disk('local')->path($filePath);
-
-            return response()->file($realPath, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $chungTu->duong_dan . '"'
-            ]);
+        if (!Storage::disk('local')->exists($filePath)) {
+            abort(404, 'Không tìm thấy file');
         }
 
+        $mimeType = Storage::disk('local')->mimeType($filePath);
+        $realPath = Storage::disk('local')->path($filePath);
 
-
-
-
-
-
+        return response()->file($realPath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $chungTu->duong_dan . '"'
+        ]);
+    }
 
     public function destroy($id)
     {
