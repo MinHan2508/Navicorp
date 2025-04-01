@@ -32,14 +32,14 @@
                     <td>{{ $chungTu->trangThai->ten_trang_thai ?? 'N/A' }}</td>
                     <td>{{ $chungTu->nguoiTao->name ?? 'N/A' }} - {{ $chungTu->nguoiTao->email ?? 'N/A' }}</td>
                     <td>
-                    @if($chungTu->nguoiTao && $chungTu->nguoiTao->phongBans->isNotEmpty())
-                        @foreach ($chungTu->nguoiTao->phongBans as $phongBan)
-                            <span class="badge bg-secondary">{{ $phongBan->ten_phong_ban }}</span><br>
-                        @endforeach
-                    @else
-                        <span class="text-muted">Chưa có phòng ban</span>
-                    @endif
-</td>
+                        @if($chungTu->nguoiTao && $chungTu->nguoiTao->phongBans->isNotEmpty())
+                            @foreach ($chungTu->nguoiTao->phongBans as $phongBan)
+                                <span class="badge bg-secondary">{{ $phongBan->ten_phong_ban }}</span><br>
+                            @endforeach
+                        @else
+                            <span class="text-muted">Chưa có phòng ban</span>
+                        @endif
+                    </td>    
                     <td>{{ $chungTu->created_at->format('d/m/Y') }}</td>
                     <td>
                         <a href="{{ route('chungtu.show', $chungTu->id) }}" class="btn btn-info btn-sm">Xem</a>

@@ -18,6 +18,7 @@ return new class extends Migration
             
             $table->string('ma_trang_thai')->unique();
             $table->string('ten_trang_thai')->unique();
+            $table->text('ghi_chu')->nullable();
             $table->timestamps();
         });
     }

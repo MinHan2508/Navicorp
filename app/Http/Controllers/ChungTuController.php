@@ -15,7 +15,7 @@ class ChungTuController extends Controller
 {
     public function index()
     {
-        $chungTus = ChungTu::with(['loaiChungTu', 'nguoiTao', 'nguoiGuiDoiTac', 'trangThai'])->get();
+        $chungTus = ChungTu::with(['loaiChungTu', 'nguoiTao.phongBans', 'nguoiGuiDoiTac', 'trangThai'])->get();
         return view('chungtu.index', compact('chungTus'));
     }
 

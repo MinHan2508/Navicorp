@@ -49,6 +49,7 @@ class ChungTu extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'nguoi_tao_id');
     }
+    
 
     /**
      * Define the relationship with the DoiTac model (Nguoi Gui Doi Tac).

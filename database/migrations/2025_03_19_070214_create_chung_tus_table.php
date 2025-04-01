@@ -14,31 +14,49 @@ return new class extends Migration
     public function up()
     {
         Schema::create('chung_tus', function (Blueprint $table) {
-            $table->id(); // PRIMARY KEY, AUTO_INCREMENT
-            $table->string('ma_chung_tu', 255)->unique()->notNull(); // UNIQUE, NOT NULL
-            $table->string('tieu_de', 255)->notNull(); // Tiêu đề chứng từ, NOT NULL
-          
-            $table->string('duong_dan', 255)->notNull(); // Đường dẫn lưu trữ tệp, NOT NULL
-            $table->text('ghi_chu')->nullable(); // Ghi chú, NULLABLE
+            $table->id(); // PRIMARY KEY
+        
+                 
 
-            // Khóa ngoại: Loại chứng từ
+            $table->string('ma_chung_tu', 255)->unique(); // Mã chứng từ
+            $table->string('tieu_de', 255); // Tiêu đề
+            $table->string('so_hieu')->nullable(); // Số hiệu văn bản
+            $table->string('duong_dan', 255); // Đường dẫn tệp
+            $table->text('trich_yeu')->nullable(); // Trích yếu nội dung
+            
+
+            $table->string('noi_ban_hanh')->nullable(); // Nơi phát hành
+            $table->date('ngay_ban_hanh')->nullable(); // Ngày phát hành
+            $table->date('ngay_hieu_luc')->nullable(); // Ngày có hiệu lực
+            $table->date('ngay_het_hieu_luc')->nullable(); // Ngày hết hiệu lực
+            $table->boolean('ky_so')->default(false); // Đã ký số chưa
+
+            $table->text('ghi_chu')->nullable(); // Ghi chú
+
+            // Liên kết hướng chứng từ
+            $table->unsignedBigInteger('id_huong')->nullable(); // ID hướng chứng từ
+            $table->foreign('id_huong')->references('id')->on('huong_chung_tus')->onDelete('set null');
+
+            // Liên kết trạng thái hiện tại của chứng từ
+            $table->unsignedBigInteger('id_trang_thai_hien_tai')->nullable(); // ID trạng thái hiện tại
+            $table->foreign('id_trang_thai_hien_tai')->references('id')->on('trang_thai_chung_tus')->onDelete('set null');
+
+
+            // Liên kết loại chứng từ
             $table->unsignedBigInteger('id_loai_chung_tu');
-            $table->foreign('id_loai_chung_tu')->references('id')->on('loai_chung_tus')->onDelete('cascade');
-
-            // Khóa ngoại: Người tạo chứng từ (nếu là nhân viên nội bộ)
-            $table->unsignedBigInteger('nguoi_tao_id')->nullable();
-            $table->foreign('nguoi_tao_id')->references('id')->on('users')->onDelete('cascade');
-
-            // Khóa ngoại: Người gửi chứng từ (nếu là đối tác bên ngoài)
-            $table->unsignedBigInteger('nguoi_gui_doi_tac_id')->nullable();
-            $table->foreign('nguoi_gui_doi_tac_id')->references('id')->on('doi_tacs')->onDelete('cascade');
-
-            // Khóa ngoại: Trạng thái chứng từ
-            $table->unsignedBigInteger('trang_thai_id');
-            $table->foreign('trang_thai_id')->references('id')->on('trang_thai_chung_tus')->onDelete('cascade');
-
-
-            $table->timestamps(); // Tự động thêm created_at & updated_at
+            $table->foreign('id_loai_chung_tu')
+                ->references('id')->on('loai_chung_tus')
+                ->onDelete('cascade');
+        
+            // Người gửi chứng từ (đối tác)
+            $table->unsignedBigInteger('id_nguoi_gui_doi_tac')->nullable();
+            $table->foreign('id_nguoi_gui_doi_tac')
+                ->references('id')->on('doi_tacs')
+                ->onDelete('cascade');
+        
+           
+        
+            $table->timestamps(); // created_at & updated_at
         });
     }
 

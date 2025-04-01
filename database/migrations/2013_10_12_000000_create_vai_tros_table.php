@@ -13,8 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('trang_thai_chung_tus', function (Blueprint $table) {
+        Schema::create('vai_tros', function (Blueprint $table) {
             $table->id();
+            $table->string('ma_vai_tro')->unique();
+            $table->string('ten_vai_tro');
+            $table->text('ghi_chu')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('trang_thai_chung_tus');
+        Schema::dropIfExists('vai_tros');
     }
 };

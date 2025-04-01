@@ -28,7 +28,8 @@ class User extends Authenticatable
 
     public function phongBans()
     {
-        return $this->belongsToMany(PhongBan::class, 'phan_congs', 'user_id', 'phongban_id');
+        return $this->belongsToMany(PhongBan::class, 'phan_congs', 'user_id', 'phongban_id')
+        ->withTimestamps();
        
     }
     /**

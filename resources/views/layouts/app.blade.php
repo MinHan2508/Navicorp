@@ -27,16 +27,43 @@
                 
             </div>
 
-            <div class="dropdown">
-                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Profile</a></li>
-                    <li><a href="#">Settings</a></li>
-                    <li><a href="{{ url('/') }}">Logout</a></li>
-                </ul>
-            </div>
-        
+            @php
+    $user = Auth::user();
+    $avatar = $user && $user->anh
+        ? route('user.avatar', basename($user->anh))
+        : asset('images/default-avatar.png');
+@endphp
+
+<div class="dropdown ms-auto  me-3">
+    <a href="#" class="dropdown-toggle d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
+        <img src="{{ $avatar }}" alt="Ảnh đại diện"
+             class="rounded-circle" width="40" height="40">
+        <span class="ms-2 fw-semibold text-dark">{{ $user->name ?? 'Khách' }}</span>
+    </a>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow">
+        <li>
+            <a class="dropdown-item d-flex align-items-center" href="{{ route('user.profile') }}">
+                <i class="bi bi-person me-2"></i> Trang cá nhân
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center" href="#">
+                <i class="bi bi-gear me-2"></i> Cài đặt
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
+
 </header><!-- End Header -->
 
         <!-- Sidebar -->
@@ -73,6 +100,8 @@
                 <li><a href="{{ route('phongban.index') }}"><i class="bi bi-bank"></i><span>Phòng Ban</span></a></li>
                 <li><a href="{{ route('loaichungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Loại Chứng từ</span></a></li>
                 <li><a href="{{ route('trangthaichungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Trạng Thái Chứng từ</span></a></li>
+                <li><a href="{{ route('vaitro.index') }}"><i class="bi bi-file-earmark-text"></i><span>Vai trò/Chức Vụ</span></a></li>
+                <li><a href="{{ route('huongchungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Hướng Chứng từ</span></a></li>s
             </ul>
         </li>
             </ul>

@@ -14,6 +14,9 @@
             <label for="ten_trang_thai">Tên Trạng thái</label>
             <input type="text" name="ten_trang_thai" id="ten_trang_thai" class="form-control" value="{{ $trangThaiChungTu->ten_trang_thai }}" required>
         </div>
+        <div class="form-group">
+            <label for="ghi_chu">Ghi chú</label>
+            <input type="text" name="ghi_chu" id="ghi_chu" class="form-control" value="{{ $trangThaiChungTu->ghi_chu }}">   
         <button type="submit">Update</button>
     </form>
 </div>

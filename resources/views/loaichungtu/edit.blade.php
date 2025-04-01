@@ -2,19 +2,24 @@
 
 @section('content')
 <div class="container">
-    <h1>Sửa loại chứng từ</h1>
+    <h1 class="mb-4">Chỉnh Sửa Loại Chứng Từ</h1>
     <form action="{{ route('loaichungtu.update', $loaichungtu->id) }}" method="POST">
         @csrf
         @method('PUT')
-        <div class="form-group">
-            <label for="ma_loai_chung_tu">Mã loại chứng từ</label>
-            <input type="text" class="form-control" id="ma_loai_chung_tu" name="ma_loai_chung_tu" value="{{ $loaichungtu->ma_loai_chung_tu }}" required>
+        <div class="form-group mb-3">
+            <label for="ma_loai_chung_tu">Mã Loại Chứng Từ</label>
+            <input type="text" name="ma_loai_chung_tu" id="ma_loai_chung_tu" class="form-control" value="{{ $loaichungtu->ma_loai_chung_tu }}" required>
         </div>
-        <div class="form-group">
-            <label for="ten_loai_chung_tu">Tên loại chứng từ</label>
-            <input type="text" class="form-control" id="ten_loai_chung_tu" name="ten_loai_chung_tu" value="{{ $loaichungtu->ten_loai_chung_tu }}" required>
+        <div class="form-group mb-3">
+            <label for="ten_loai_chung_tu">Tên Loại Chứng Từ</label>
+            <input type="text" name="ten_loai_chung_tu" id="ten_loai_chung_tu" class="form-control" value="{{ $loaichungtu->ten_loai_chung_tu }}" required>
         </div>
-        <button type="submit" class="btn btn-primary">Cập nhật</button>
+        <div class="form-group mb-3">
+            <label for="ghi_chu">Ghi Chú</label>
+            <textarea name="ghi_chu" id="ghi_chu" class="form-control">{{ $loaichungtu->ghi_chu }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Cập Nhật</button>
+        <a href="{{ route('loaichungtu.index') }}" class="btn btn-secondary">Hủy</a>
     </form>
 </div>
 @endsection

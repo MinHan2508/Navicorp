@@ -10,6 +10,9 @@ use App\Http\Controllers\UploadController;
 use App\Http\Controllers\ChungTuController;
 use App\Http\Controllers\TrangThaiChungTuController;
 use App\Http\Controllers\DoiTacController;
+use App\Http\Controllers\VaiTroController;
+use App\Http\Controllers\HuongChungTuController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -49,6 +52,11 @@ Route::delete('/users/profile', [UserController::class, 'destroy'])->name('users
 Route::get('/user/profile', [UserController::class, 'show'])->name('user.profile')->middleware('auth');
 Route::get('/user/profile', [UserController::class, 'show'])->name('user.profile');
 Route::get('/users/profile', [UserController::class, 'show'])->name('users.profile');
+
+Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
+
+Route::put('/profile/change-password', [UserController::class, 'changePassword'])->name('profile.change-password');
+
 //Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 //Route::get('/users/import', [UserController::class, 'showImportForm'])->name('users.import.form');
 //Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
@@ -128,6 +136,26 @@ Route::put('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, '
 Route::delete('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'destroy'])->name('doitac.destroy');
 Route::get('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'show'])->name('doitac.show');
 //Route::get('/doitac/{doitac}', [\App\Http\Controllers\DoiTacController::class, 'show'])->name('doitac.show');
+
+
+
+//Vai trò
+Route::get('/vaitro', [\App\Http\Controllers\VaiTroController::class, 'index'])->name('vaitro.index');
+Route::get('/vaitro/create', [\App\Http\Controllers\VaiTroController::class, 'create'])->name('vaitro.create');
+Route::post('/vaitro', [\App\Http\Controllers\VaiTroController::class, 'store'])->name('vaitro.store');
+Route::get('/vaitro/{vaitro}/edit', [\App\Http\Controllers\VaiTroController::class, 'edit'])->name('vaitro.edit');
+Route::put('/vaitro/{vaitro}', [\App\Http\Controllers\VaiTroController::class, 'update'])->name('vaitro.update');
+Route::delete('/vaitro/{vaitro}', [\App\Http\Controllers\VaiTroController::class, 'destroy'])->name('vaitro.destroy');
+Route::get('/vaitro/{vaitro}', [\App\Http\Controllers\VaiTroController::class, 'show'])->name('vaitro.show');
+
+//Hướng chứng từ
+Route::get('/huongchungtu', [\App\Http\Controllers\HuongChungTuController::class, 'index'])->name('huongchungtu.index');
+Route::get('/huongchungtu/create', [\App\Http\Controllers\HuongChungTuController::class, 'create'])->name('huongchungtu.create');
+Route::post('/huongchungtu', [\App\Http\Controllers\HuongChungTuController::class, 'store'])->name('huongchungtu.store');
+Route::get('/huongchungtu/{huongchungtu}/edit', [\App\Http\Controllers\HuongChungTuController::class, 'edit'])->name('huongchungtu.edit');
+Route::put('/huongchungtu/{huongchungtu}', [\App\Http\Controllers\HuongChungTuController::class, 'update'])->name('huongchungtu.update');
+Route::delete('/huongchungtu/{huongchungtu}', [\App\Http\Controllers\HuongChungTuController::class, 'destroy'])->name('huongchungtu.destroy');
+Route::get('/huongchungtu/{huongchungtu}', [\App\Http\Controllers\HuongChungTuController::class, 'show'])->name('huongchungtu.show');
 
 
 //nhanvien

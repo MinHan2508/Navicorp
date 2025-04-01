@@ -13,6 +13,10 @@
             <label for="ten_trang_thai">Tên Trạng thái</label>
             <input type="text" name="ten_trang_thai" id="ten_trang_thai" class="form-control" required>
         </div>
+        <div class="form-group">
+            <label for="ghi_chu">Mô tả</label>
+            <input type="text" name="ghi_chu" id="ghi_chu" class="form-control">
+        </div>
         <button type="submit" class="btn btn-primary mt-3">Lưu</button>
     </form>
 </div>

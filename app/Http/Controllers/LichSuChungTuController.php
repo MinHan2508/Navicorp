@@ -14,7 +14,9 @@ class LichSuChungTuController extends Controller
      */
     public function index()
     {
-        //
+        // Lấy danh sách lịch sử chứng từ
+        $lichSuChungTus = LichSuChungTu::with('nguoiThayDoi', 'chungTu')->get();
+        return view('lichsuchungtu.index', compact('lichSuChungTus'));
     }
 
     /**
@@ -24,7 +26,8 @@ class LichSuChungTuController extends Controller
      */
     public function create()
     {
-        //
+        // Hiển thị form tạo mới lịch sử chứng từ
+        return view('lichsuchungtu.create');
     }
 
     /**
@@ -35,7 +38,18 @@ class LichSuChungTuController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validate dữ liệu
+        $validatedData = $request->validate([
+            'chung_tu_id' => 'required|exists:chung_tus,id',
+            'nguoi_thay_doi_id' => 'required|exists:users,id',
+            'trang_thai_moi_id' => 'required|exists:trang_thais,id',
+            'ghi_chu' => 'nullable|string',
+        ]);
+
+        // Tạo mới lịch sử chứng từ
+        LichSuChungTu::create($validatedData);
+
+        return redirect()->route('lichsuchungtu.index')->with('success', 'Lịch sử chứng từ được tạo thành công.');
     }
 
     /**
@@ -46,7 +60,8 @@ class LichSuChungTuController extends Controller
      */
     public function show(LichSuChungTu $lichSuChungTu)
     {
-        //
+        // Hiển thị chi tiết lịch sử chứng từ
+        return view('lichsuchungtu.show', compact('lichSuChungTu'));
     }
 
     /**
@@ -57,7 +72,8 @@ class LichSuChungTuController extends Controller
      */
     public function edit(LichSuChungTu $lichSuChungTu)
     {
-        //
+        // Hiển thị form chỉnh sửa lịch sử chứng từ
+        return view('lichsuchungtu.edit', compact('lichSuChungTu'));
     }
 
     /**
@@ -69,7 +85,18 @@ class LichSuChungTuController extends Controller
      */
     public function update(Request $request, LichSuChungTu $lichSuChungTu)
     {
-        //
+        // Validate dữ liệu
+        $validatedData = $request->validate([
+            'chung_tu_id' => 'required|exists:chung_tus,id',
+            'nguoi_thay_doi_id' => 'required|exists:users,id',
+            'trang_thai_moi_id' => 'required|exists:trang_thais,id',
+            'ghi_chu' => 'nullable|string',
+        ]);
+
+        // Cập nhật lịch sử chứng từ
+        $lichSuChungTu->update($validatedData);
+
+        return redirect()->route('lichsuchungtu.index')->with('success', 'Lịch sử chứng từ được cập nhật thành công.');
     }
 
     /**
@@ -80,6 +107,9 @@ class LichSuChungTuController extends Controller
      */
     public function destroy(LichSuChungTu $lichSuChungTu)
     {
-        //
+        // Xóa lịch sử chứng từ
+        $lichSuChungTu->delete();
+
+        return redirect()->route('lichsuchungtu.index')->with('success', 'Lịch sử chứng từ đã được xóa.');
     }
 }

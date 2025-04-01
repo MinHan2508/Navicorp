@@ -13,8 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('lich_su_chung_tus', function (Blueprint $table) {
-            $table->id();
+        Schema::create('phong_bans', function (Blueprint $table) {
+            $table->id(); // ID_PhongBan
+            $table->string('ma_phong_ban')->unique();
+            $table->string('ten_phong_ban')->unique();
+            $table->text('ghi_chu')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('lich_su_chung_tus');
+        Schema::dropIfExists('phong_bans');
     }
 };

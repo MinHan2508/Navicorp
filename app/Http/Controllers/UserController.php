@@ -10,6 +10,10 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
+
+use Illuminate\Validation\ValidationException;
+
+
 class UserController extends Controller
 {
     /**
@@ -141,6 +145,64 @@ class UserController extends Controller
 
         return redirect()->route('users.index')->with('success', 'Cập nhật người dùng thành công.');
     }
+
+
+
+
+        public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'sdt' => 'nullable|string|max:20',
+            'dia_chi' => 'nullable|string|max:255',
+            'gioi_tinh' => 'required|in:nam,nu',
+            'anh' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($request->hasFile('anh')) {
+            $file = $request->file('anh');
+            $filename = \Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $path = 'img/anhthe';
+            $file->storeAs($path, $filename);
+            $validated['anh'] = $path . '/' . $filename;
+        }
+
+        $user->update($validated);
+
+        return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
+    }
+
+
+    /**
+     * đổi mật khẩu
+     */
+
+  
+     
+     public function changePassword(Request $request)
+     {
+         $user = auth()->user();
+     
+         $request->validate([
+             'old_password' => ['required'],
+             'new_password' => ['required', 'confirmed', 'min:8'], // Laravel tự kiểm tra new_password == new_password_confirmation
+         ]);
+     
+         if (!Hash::check($request->old_password, $user->password)) {
+             throw ValidationException::withMessages([
+                 'old_password' => 'Mật khẩu cũ không đúng.',
+             ]);
+         }
+     
+         $user->update([
+             'password' => Hash::make($request->new_password),
+         ]);
+     
+         return back()->with('success', 'Mật khẩu đã được cập nhật thành công!');
+     }
+     
 
     /**
      * Xóa user.

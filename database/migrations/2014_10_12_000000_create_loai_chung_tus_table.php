@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id(); // ID_LoaiChungTu
             $table->string('ma_loai_chung_tu')->unique();
             $table->string('ten_loai_chung_tu')->unique();
+            $table->text('ghi_chu')->nullable();
             $table->timestamps();
             
         });

@@ -28,8 +28,10 @@ return new class extends Migration
             $table->unsignedBigInteger('doi_tac_id')->nullable();
             $table->foreign('doi_tac_id')->references('id')->on('doi_tacs')->onDelete('cascade');
 
+            // Ghi chú
+            $table->text('ghi_chu')->nullable();
          
-               $table->timestamps(); // Tự động thêm created_at & updated_at
+            $table->timestamps(); // Tự động thêm created_at & updated_at
         });
     }
 

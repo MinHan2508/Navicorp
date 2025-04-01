@@ -10,6 +10,7 @@
                 <th>#</th>
                 <th>Mã Trạng thái</th>
                 <th>Tên Trạng thái</th>
+                <th>Mô tả</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -19,6 +20,7 @@
                 <td>{{ $loop->iteration }}</td>
                 <td>{{ $trangThai->ma_trang_thai }}</td>
                 <td>{{ $trangThai->ten_trang_thai }}</td>
+                <td>{{ $trangThai->ghi_chu }}</td>
                 <td>
                     <a href="{{ route('trangthaichungtu.edit', $trangThai->id) }}" class="btn btn-warning btn-sm">Sửa</a>
                     <form action="{{ route('trangthaichungtu.destroy', $trangThai->id) }}" method="POST" style="display:inline;">
