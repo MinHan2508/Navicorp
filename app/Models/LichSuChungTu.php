@@ -9,18 +9,31 @@ class LichSuChungTu extends Model
 {
     use HasFactory;
 
-    public function chungTu()
+
+
+    protected $fillable = [
+        'id_chung_tu',
+        'id_nguoi_thay_doi',
+        'id_trang_thai_moi',
+        'ghi_chu',
+    ];
+
+        public function chungTu()
     {
-        return $this->belongsTo(ChungTu::class, 'chung_tu_id');
+        return $this->belongsTo(ChungTu::class, 'id_chung_tu');
     }
 
     public function nguoiThayDoi()
     {
-        return $this->belongsTo(User::class, 'nguoi_thay_doi_id');
+        return $this->belongsTo(User::class, 'id_nguoi_thay_doi');
     }
 
     public function trangThaiMoi()
     {
-        return $this->belongsTo(TrangThai::class, 'trang_thai_moi_id');
+        return $this->belongsTo(TrangThaiChungTu::class, 'id_trang_thai_moi');
     }
+
+       
+
+
 }

@@ -54,7 +54,11 @@ return new class extends Migration
                 ->references('id')->on('doi_tacs')
                 ->onDelete('cascade');
         
-           
+        // Người tạo chứng từ (user)
+        $table->unsignedBigInteger('id_nguoi_tao')->nullable();
+        $table->foreign('id_nguoi_tao')
+            ->references('id')->on('users')
+            ->onDelete('set null');
         
             $table->timestamps(); // created_at & updated_at
         });

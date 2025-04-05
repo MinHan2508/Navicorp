@@ -94,7 +94,6 @@
             </a>
             <ul id="system-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li><a href="{{ route('users.index') }}"><i class="bi bi-person"></i><span>Người dùng</span></a></li>
-                <li><a href="{{ route('phancong.index') }}"><i class="bi bi-key"></i><span> Phân Công</span></a></li>
                 
                 <li><a href="{{ route('doitac.index') }}"><i class="bi bi-bank"></i><span>Đối Tác</span></a></li>
                 <li><a href="{{ route('phongban.index') }}"><i class="bi bi-bank"></i><span>Phòng Ban</span></a></li>

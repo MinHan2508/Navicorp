@@ -2,92 +2,86 @@
 
 @section('content')
 <div class="container py-4">
-    <h1 class="mb-4 text-primary">✏️ Chỉnh sửa Chứng từ</h1>
-    <form action="{{ route('chungtu.update', $chungTu->id) }}" method="POST" enctype="multipart/form-data" class="shadow p-4 rounded bg-light">
+    <h2 class="mb-4 text-warning">✏️ Cập nhật Đối tác</h2>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <strong>Đã có lỗi xảy ra:</strong>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{ route('doitac.update', $doiTac->id) }}" method="POST">
         @csrf
         @method('PUT')
 
-        <!-- Người Tạo -->
-        <div class="form-group mb-3">
-            <label for="nguoi_tao_id" class="form-label">Người Tạo</label>
-            @if(auth()->check())
-                <input type="text" class="form-control" value="{{ auth()->user()->email }}" disabled>
-                <input type="hidden" name="nguoi_tao_id" id="nguoi_tao_id" value="{{ auth()->user()->id }}">
-            @else
-                <input type="text" class="form-control" value="Không xác định" disabled>
-                <input type="hidden" name="nguoi_tao_id" id="nguoi_tao_id" value="">
-            @endif
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Tên đối tác</label>
+                <input type="text" name="ten_doi_tac" class="form-control" value="{{ old('ten_doi_tac', $doiTac->ten_doi_tac) }}" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Loại đối tác</label>
+                <select name="loai_doi_tac" class="form-select" required>
+                    @foreach(['Cá nhân', 'Tổ chức', 'Nhà Nước', 'Khác'] as $loai)
+                        <option value="{{ $loai }}" {{ old('loai_doi_tac', $doiTac->loai_doi_tac) == $loai ? 'selected' : '' }}>{{ $loai }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input type="text" name="sdt" class="form-control" value="{{ old('sdt', $doiTac->sdt) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ old('email', $doiTac->email) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Mã số thuế</label>
+                <input type="text" name="ma_so_thue" class="form-control" value="{{ old('ma_so_thue', $doiTac->ma_so_thue) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fax</label>
+                <input type="text" name="fax" class="form-control" value="{{ old('fax', $doiTac->fax) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Người đại diện</label>
+                <input type="text" name="nguoi_dai_dien" class="form-control" value="{{ old('nguoi_dai_dien', $doiTac->nguoi_dai_dien) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Chức vụ đại diện</label>
+                <input type="text" name="chuc_vu_dai_dien" class="form-control" value="{{ old('chuc_vu_dai_dien', $doiTac->chuc_vu_dai_dien) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Website</label>
+                <input type="text" name="website" class="form-control" value="{{ old('website', $doiTac->website) }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Địa chỉ</label>
+                <input type="text" name="dia_chi" class="form-control" value="{{ old('dia_chi', $doiTac->dia_chi) }}">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Ghi chú</label>
+                <textarea name="ghi_chu" class="form-control" rows="3">{{ old('ghi_chu', $doiTac->ghi_chu) }}</textarea>
+            </div>
         </div>
 
-        <!-- Người Gửi Đối Tác -->
-        <div class="form-group mb-3">
-            <label for="nguoi_gui_doi_tac_id" class="form-label">Người Gửi Đối Tác</label>
-            <select name="nguoi_gui_doi_tac_id" id="nguoi_gui_doi_tac_id" class="form-select">
-                <option value="">-- Chọn Người Gửi Đối Tác --</option>
-                @foreach($doiTacs as $doiTac)
-                    <option value="{{ $doiTac->id }}" {{ $chungTu->nguoi_gui_doi_tac_id == $doiTac->id ? 'selected' : '' }}>
-                        {{ $doiTac->ten_doi_tac }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <!-- Mã Chứng Từ -->
-        <div class="form-group mb-3">
-            <label for="ma_chung_tu" class="form-label">Mã Chứng Từ</label>
-            <input type="text" name="ma_chung_tu" id="ma_chung_tu" class="form-control" value="{{ $chungTu->ma_chung_tu }}" required>
-        </div>
-
-        <!-- Tiêu Đề -->
-        <div class="form-group mb-3">
-            <label for="tieu_de" class="form-label">Tiêu Đề</label>
-            <input type="text" name="tieu_de" id="tieu_de" class="form-control" value="{{ $chungTu->tieu_de }}" required>
-        </div>
-
-        <!-- Loại Chứng Từ -->
-        <div class="form-group mb-3">
-            <label for="id_loai_chung_tu" class="form-label">Loại Chứng Từ</label>
-            <select name="id_loai_chung_tu" id="id_loai_chung_tu" class="form-select" required>
-                <option value="">-- Chọn Loại Chứng Từ --</option>
-                @foreach($loaiChungTus as $loaiChungTu)
-                    <option value="{{ $loaiChungTu->id }}" {{ $chungTu->id_loai_chung_tu == $loaiChungTu->id ? 'selected' : '' }}>
-                        {{ $loaiChungTu->ten_loai_chung_tu }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <!-- Tải lên File -->
-        <div class="form-group mb-3">
-            <label for="duong_dan" class="form-label">Tải lên File Chứng Từ</label>
-            <input type="file" name="duong_dan" id="duong_dan" class="form-control" accept=".pdf,.doc,.docx,.xlsx,.xls">
-            @if($chungTu->duong_dan)
-                <p class="mt-2">File hiện tại: <a href="{{ asset('storage/' . $chungTu->duong_dan) }}" target="_blank">Tải xuống</a></p>
-            @endif
-        </div>
-
-        <!-- Ghi Chú -->
-        <div class="form-group mb-3">
-            <label for="ghi_chu" class="form-label">Ghi Chú</label>
-            <textarea name="ghi_chu" id="ghi_chu" class="form-control" rows="3">{{ $chungTu->ghi_chu }}</textarea>
-        </div>
-
-        <!-- Trạng Thái -->
-        <div class="form-group mb-3">
-            <label for="trang_thai_id" class="form-label">Trạng Thái</label>
-            <select name="trang_thai_id" id="trang_thai_id" class="form-select" required>
-                <option value="">-- Chọn Trạng Thái --</option>
-                @foreach($trangThaiChungTus as $trangThai)
-                    <option value="{{ $trangThai->id }}" {{ $chungTu->trang_thai_id == $trangThai->id ? 'selected' : '' }}>
-                        {{ $trangThai->ten_trang_thai }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <!-- Nút Lưu -->
         <button type="submit" class="btn btn-primary">💾 Cập nhật</button>
-        <a href="{{ route('chungtu.index') }}" class="btn btn-secondary">← Quay lại</a>
+        <a href="{{ route('doitac.index') }}" class="btn btn-secondary">← Quay lại</a>
     </form>
 </div>
 @endsection

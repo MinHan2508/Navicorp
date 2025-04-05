@@ -83,15 +83,6 @@ Route::put('/phongban/{phongban}', [PhongBanController::class, 'update'])->name(
 Route::delete('/phongban/{phongban}', [PhongBanController::class, 'destroy'])->name('phongban.destroy');   
 Route::get('/phongban/{phongban}', [PhongBanController::class, 'show'])->name('phongban.show');
 
-//phancong
-Route::get('/phancong', [PhanCongController::class, 'index'])->name('phancong.index');
-Route::get('/phancong/create', [PhanCongController::class, 'create'])->name('phancong.create');
-Route::post('/phancong', [PhanCongController::class, 'store'])->name('phancong.store');
-Route::get('/phancong/{phancong}/edit', [PhanCongController::class, 'edit'])->name('phancong.edit');
-Route::put('/phancong/{phancong}', [PhanCongController::class, 'update'])->name('phancong.update');
-Route::delete('/phancong/{phancong}', [PhanCongController::class, 'destroy'])->name('phancong.destroy');
-Route::get('/phancong/{phancong}', [PhanCongController::class, 'show'])->name('phancong.show');
-
 //loaichungtu
 Route::get('/loaichungtu', [LoaiChungTuController::class, 'index'])->name('loaichungtu.index');
 Route::get('/loaichungtu/create', [LoaiChungTuController::class, 'create'])->name('loaichungtu.create');
@@ -109,6 +100,12 @@ Route::get('/chungtu/{chungtu}/edit', [ChungTuController::class, 'edit'])->name(
 Route::put('/chungtu/{chungtu}', [ChungTuController::class, 'update'])->name('chungtu.update');
 Route::delete('/chungtu/{chungtu}', [ChungTuController::class, 'destroy'])->name('chungtu.destroy');
 Route::get('/chungtu/{chungtu}', [ChungTuController::class, 'show'])->name('chungtu.show');
+
+// routes/web.php
+Route::match(['get', 'post'], '/chung-tu/{chungTu}/xu-ly', [ChungTuController::class, 'xuLyChungTu'])
+    ->name('chungtu.xuly');
+
+
 // routes/web.php
 
 // xem thông tin file

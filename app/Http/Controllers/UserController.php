@@ -2,154 +2,114 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PhongBan;
-use App\Models\User;
+use App\Models\{PhongBan, VaiTro, User};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\{Auth, Hash, Storage};
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-
-
 use Illuminate\Validation\ValidationException;
-
 
 class UserController extends Controller
 {
-    /**
-     * Hiển thị danh sách người dùng.
-     */
     public function index(Request $request)
     {
         $query = User::query();
 
-        if ($request->has('vaitro')) {
-            $query->where('vaitro', $request->input('vaitro'));
+        if ($request->has('id_vaitro')) {
+            $query->where('id_vaitro', $request->input('id_vaitro'));
         }
 
         $query->where('id', '!=', 1)
               ->where('id', '!=', auth()->id());
 
-        $users = $query->with('phongBans')->get();
+        $users = $query->with(['phongBan', 'vaiTro'])->get();
 
         return view('users.index', compact('users'));
     }
 
-    /**
-     * Hiển thị form tạo user.
-     */
     public function create()
     {
         $phongbans = PhongBan::all();
-        return view('users.create', compact('phongbans'));
+        $vaiTros = VaiTro::all();
+        return view('users.create', compact('phongbans', 'vaiTros'));
     }
 
-    /**
-     * Lưu user mới vào database.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'vaitro' => 'required|in:giamdoc,nv,truongphong',
+            'id_vaitro' => 'nullable|exists:vai_tros,id',
             'sdt' => 'nullable|string|max:20|unique:users',
             'dia_chi' => 'nullable|string|max:255',
-            'gioi_tinh' => 'required|in:nam,nu',
+            'gioi_tinh' => 'required|in:Nam,Nữ,Khác',
+            'ngay_sinh' => 'nullable|date',
             'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'trang_thai' => 'required|in:Hoạt động,Khóa',
-            'phongban_id' => 'required|integer|exists:phong_bans,id',
+            'trang_thai' => 'required|in:Hoạt động,Khóa,Khác',
+            'id_phongban' => 'nullable|exists:phong_bans,id',
+            'ghi_chu' => 'nullable|string',
         ]);
 
-        // Xử lý ảnh đại diện
         $imagePath = null;
         if ($request->hasFile('anh')) {
             $file = $request->file('anh');
             $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('img/anhthe', $fileName, 'local'); // Lưu vào storage/app/img/anhthe
-            $imagePath =  $fileName;
+            $file->storeAs('img/anhthe', $fileName, 'local');
+            $imagePath = $fileName;
         }
 
-        // Tạo user mới
         $user = new User();
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        $user->fill($validated);
         $user->password = Hash::make($validated['password']);
-        $user->vaitro = $validated['vaitro'];
-        $user->sdt = $validated['sdt'];
-        $user->dia_chi = $validated['dia_chi'];
-        $user->gioi_tinh = $validated['gioi_tinh'];
         $user->anh = $imagePath;
-        $user->trang_thai = $validated['trang_thai'];
         $user->save();
-
-        // Gắn phòng ban cho user
-        $user->phongBans()->attach($validated['phongban_id']);
 
         return redirect()->route('users.index')->with('success', 'Người dùng được tạo thành công.');
     }
 
-    /**
-     * Hiển thị form chỉnh sửa user.
-     */
     public function edit($id)
     {
-        $user = User::with('phongBans')->findOrFail($id);
+        $user = User::findOrFail($id);
         $phongBans = PhongBan::all();
-        return view('users.edit', compact('user', 'phongBans'));
+        $vaiTros = VaiTro::all();
+
+        return view('users.edit', compact('user', 'phongBans', 'vaiTros'));
     }
 
-    /**
-     * Cập nhật thông tin user.
-     */
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'vaitro' => 'required|in:giamdoc,nv,truongphong',
+            'id_vaitro' => 'nullable|exists:vai_tros,id',
             'sdt' => 'nullable|string|max:20|unique:users,sdt,' . $id,
             'dia_chi' => 'nullable|string|max:255',
-            'gioi_tinh' => 'required|in:nam,nu',
+            'gioi_tinh' => 'required|in:Nam,Nữ,Khác',
+            'ngay_sinh' => 'nullable|date',
             'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'trang_thai' => 'required|in:Hoạt động,Khóa',
-            'phong_ban' => 'required|integer|exists:phong_bans,id',
+            'trang_thai' => 'required|in:Hoạt động,Khóa,Khác',
+            'id_phongban' => 'nullable|exists:phong_bans,id',
+            'ghi_chu' => 'nullable|string',
         ]);
 
         $user = User::findOrFail($id);
 
-        // Xử lý ảnh mới nếu có
         if ($request->hasFile('anh')) {
             if ($user->anh && Storage::disk('local')->exists($user->anh)) {
                 Storage::disk('local')->delete($user->anh);
             }
-
             $file = $request->file('anh');
             $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $file->storeAs('img/anhthe', $fileName, 'local');
-            $user->anh =  $fileName;
+            $user->anh = $fileName;
         }
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'vaitro' => $validated['vaitro'],
-            'sdt' => $validated['sdt'],
-            'dia_chi' => $validated['dia_chi'],
-            'gioi_tinh' => $validated['gioi_tinh'],
-            'trang_thai' => $validated['trang_thai'],
-        ]);
-
-        $user->phongBans()->sync([$validated['phong_ban']]);
+        $user->update($validated);
 
         return redirect()->route('users.index')->with('success', 'Cập nhật người dùng thành công.');
     }
 
-
-
-
-        public function updateProfile(Request $request)
+    public function updateProfile(Request $request)
     {
         $user = Auth::user();
 
@@ -157,16 +117,17 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'sdt' => 'nullable|string|max:20',
             'dia_chi' => 'nullable|string|max:255',
-            'gioi_tinh' => 'required|in:nam,nu',
+            'gioi_tinh' => 'required|in:Nam,Nữ,Khác',
+            'ngay_sinh' => 'nullable|date',
             'anh' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'ghi_chu' => 'nullable|string',
         ]);
 
         if ($request->hasFile('anh')) {
             $file = $request->file('anh');
-            $filename = \Str::uuid() . '.' . $file->getClientOriginalExtension();
-            $path = 'img/anhthe';
-            $file->storeAs($path, $filename);
-            $validated['anh'] = $path . '/' . $filename;
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('img/anhthe', $filename);
+            $validated['anh'] = $filename;
         }
 
         $user->update($validated);
@@ -174,39 +135,28 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
     }
 
+    public function changePassword(Request $request)
+    {
+        $user = auth()->user();
 
-    /**
-     * đổi mật khẩu
-     */
+        $request->validate([
+            'old_password' => ['required'],
+            'new_password' => ['required', 'confirmed', 'min:8'],
+        ]);
 
-  
-     
-     public function changePassword(Request $request)
-     {
-         $user = auth()->user();
-     
-         $request->validate([
-             'old_password' => ['required'],
-             'new_password' => ['required', 'confirmed', 'min:8'], // Laravel tự kiểm tra new_password == new_password_confirmation
-         ]);
-     
-         if (!Hash::check($request->old_password, $user->password)) {
-             throw ValidationException::withMessages([
-                 'old_password' => 'Mật khẩu cũ không đúng.',
-             ]);
-         }
-     
-         $user->update([
-             'password' => Hash::make($request->new_password),
-         ]);
-     
-         return back()->with('success', 'Mật khẩu đã được cập nhật thành công!');
-     }
-     
+        if (!Hash::check($request->old_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'old_password' => 'Mật khẩu cũ không đúng.',
+            ]);
+        }
 
-    /**
-     * Xóa user.
-     */
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        return back()->with('success', 'Mật khẩu đã được cập nhật thành công!');
+    }
+
     public function destroy($id)
     {
         $user = User::findOrFail($id);
@@ -221,9 +171,6 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'Người dùng đã được xóa.');
     }
 
-    /**
-     * Xem hồ sơ cá nhân.
-     */
     public function show()
     {
         if (!Auth::check()) {
@@ -233,8 +180,4 @@ class UserController extends Controller
         $user = Auth::user();
         return view('users.profile', compact('user'));
     }
-
-    /**
-     * Xử lý tải lên Excel.
-     */
 }

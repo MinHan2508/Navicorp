@@ -27,17 +27,40 @@
         </div>
 
         <div class="form-group">
-            <label for="vaitro">Chức vụ</label>
-            <select class="form-control" id="vaitro" name="vaitro" required>
-                <option value="giamdoc" {{ old('vaitro', $user->vaitro) == 'giamdoc' ? 'selected' : '' }}>Giám đốc</option>
-                <option value="nv" {{ old('vaitro', $user->vaitro) == 'nv' ? 'selected' : '' }}>Nhân viên</option>
-                <option value="truongphong" {{ old('vaitro', $user->vaitro) == 'truongphong' ? 'selected' : '' }}>Trưởng phòng</option>
+            <label for="id_vaitro">Vai trò</label>
+            <select class="form-control" id="id_vaitro" name="id_vaitro" required>
+                <option value="" disabled>-- Chọn vai trò --</option>
+                @foreach ($vaiTros as $vaiTro)
+                    <option value="{{ $vaiTro->id }}"
+                        {{ old('id_vaitro', $user->id_vaitro) == $vaiTro->id ? 'selected' : '' }}>
+                        {{ $vaiTro->ten_vai_tro }}
+                    </option>
+                @endforeach
             </select>
         </div>
 
         <div class="form-group">
+            <label for="id_phongban">Phòng ban</label>
+            <select class="form-control" id="id_phongban" name="id_phongban" required>
+                <option value="" disabled>-- Chọn phòng ban --</option>
+                @foreach ($phongBans as $phongBan)
+                    <option value="{{ $phongBan->id }}"
+                        {{ old('id_phongban', $user->id_phongban) == $phongBan->id ? 'selected' : '' }}>
+                        {{ $phongBan->ten_phong_ban }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+
+        <div class="form-group">
             <label for="sdt">Số điện thoại</label>
             <input type="text" class="form-control" id="sdt" name="sdt" value="{{ old('sdt', $user->sdt) }}">
+        </div>
+
+        <div class="form-group">
+            <label for="ngay_sinh">Ngày sinh</label>
+            <input type="date" class="form-control" id="ngay_sinh" name="ngay_sinh" value="{{ old('ngay_sinh', $user->ngay_sinh) }}" required>
         </div>
 
         <div class="form-group">
@@ -48,14 +71,13 @@
         <div class="form-group">
             <label for="gioi_tinh">Giới tính</label>
             <select class="form-control" id="gioi_tinh" name="gioi_tinh" required>
-                <option value="nam" {{ old('gioi_tinh', $user->gioi_tinh) == 'nam' ? 'selected' : '' }}>Nam</option>
-                <option value="nu" {{ old('gioi_tinh', $user->gioi_tinh) == 'nu' ? 'selected' : '' }}>Nữ</option>
+                <option value="Nam" {{ old('gioi_tinh', $user->gioi_tinh) == 'Nam' ? 'selected' : '' }}>Nam</option>
+                <option value="Nữ" {{ old('gioi_tinh', $user->gioi_tinh) == 'Nữ' ? 'selected' : '' }}>Nữ</option>
+                <option value="Khác" {{ old('gioi_tinh', $user->gioi_tinh) == 'Khác' ? 'selected' : '' }}>Khác</option>
             </select>
         </div>
 
-        <!-- <div class="form-group">
-        <label for="anh">Ảnh đại diện</label>
-        <input type="file" name="anh" class="form-control"> -->
+  
 
 
     
@@ -100,37 +122,34 @@
 
 
 
+        <!-- Trích đoạn cần chỉnh -->
 
-
-
-            <!-- <div class="mt-3">
-                <img id="preview" src="#" alt="Ảnh xem trước" style="max-width: 150px; display: none;">
-            </div>
-           </div>
-
-          <div>ẢNH CŨ</div>
-             @if($user->anh)
-                        
-            <img src="{{ asset('storage/img/anhthe/' . basename($user->anh)) }}" 
-                                alt="Ảnh đại diện" 
-                             > 
-                        @else
-                            <span class="text-muted">Cập nhật ảnh</span>
-                        @endif -->
+        <div class="form-group">
+            <label for="id_vaitro">Vai trò</label>
+            <select class="form-control" id="id_vaitro" name="id_vaitro" required>
+                <option value="" disabled>-- Chọn vai trò --</option>
+                @foreach ($vaiTros as $vaiTro)
+                    <option value="{{ $vaiTro->id }}"
+                        {{ old('id_vaitro', $user->id_vaitro) == $vaiTro->id ? 'selected' : '' }}>
+                        {{ $vaiTro->ten_vai_tro }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
-        <div class="mb-3">
-            <label for="phong_ban" class="form-label fw-bold">Phòng ban <span class="text-danger">*</span></label>
-            <select class="form-select" id="phong_ban" name="phong_ban" required>
-                <option value="" disabled selected>-- Chọn phòng ban --</option>
+        <div class="form-group">
+            <label for="id_phongban">Phòng ban</label>
+            <select class="form-control" id="id_phongban" name="id_phongban" required>
+                <option value="" disabled>-- Chọn phòng ban --</option>
                 @foreach ($phongBans as $phongBan)
                     <option value="{{ $phongBan->id }}"
-                        {{ old('phong_ban', optional($user->phongBans->first())->id) == $phongBan->id ? 'selected' : '' }}>
+                        {{ old('id_phongban', $user->id_phongban) == $phongBan->id ? 'selected' : '' }}>
                         {{ $phongBan->ten_phong_ban }}
                     </option>
                 @endforeach
             </select>
         </div>
+
 
 
 

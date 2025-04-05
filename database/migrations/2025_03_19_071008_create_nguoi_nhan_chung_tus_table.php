@@ -17,16 +17,16 @@ return new class extends Migration
             $table->id(); // ID - Khóa chính, tự động tăng
 
             // Khóa ngoại: Mã chứng từ
-            $table->unsignedBigInteger('chung_tu_id');
-            $table->foreign('chung_tu_id')->references('id')->on('chung_tus')->onDelete('cascade');
+            $table->unsignedBigInteger('id_chung_tu');
+            $table->foreign('id_chung_tu')->references('id')->on('chung_tus')->onDelete('cascade');
 
             // Khóa ngoại: Người nhận chứng từ (nếu là nhân viên nội bộ)
-            $table->unsignedBigInteger('nguoi_nhan_id')->nullable();
-            $table->foreign('nguoi_nhan_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('id_nguoi_nhan')->nullable();
+            $table->foreign('id_nguoi_nhan')->references('id')->on('users')->onDelete('cascade');
 
             // Khóa ngoại: Người nhận chứng từ (nếu là đối tác bên ngoài)
-            $table->unsignedBigInteger('doi_tac_id')->nullable();
-            $table->foreign('doi_tac_id')->references('id')->on('doi_tacs')->onDelete('cascade');
+            $table->unsignedBigInteger('id_doi_tac')->nullable();
+            $table->foreign('id_doi_tac')->references('id')->on('doi_tacs')->onDelete('cascade');
 
             // Ghi chú
             $table->text('ghi_chu')->nullable();

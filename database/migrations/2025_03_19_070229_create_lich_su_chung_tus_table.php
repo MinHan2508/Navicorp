@@ -12,16 +12,16 @@ return new class extends Migration
             $table->id(); // ID lịch sử chứng từ
 
             // 🔁 Khóa ngoại: chứng từ thay đổi
-            $table->unsignedBigInteger('chung_tu_id');
-            $table->foreign('chung_tu_id')->references('id')->on('chung_tus')->onDelete('cascade');
+            $table->unsignedBigInteger('id_chung_tu');
+            $table->foreign('id_chung_tu')->references('id')->on('chung_tus')->onDelete('cascade');
 
             // 🔁 Người thay đổi trạng thái (user)
-            $table->unsignedBigInteger('nguoi_thay_doi_id');
-            $table->foreign('nguoi_thay_doi_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('id_nguoi_thay_doi');
+            $table->foreign('id_nguoi_thay_doi')->references('id')->on('users')->onDelete('cascade');
 
             // 🔁 Trạng thái mới
-            $table->unsignedBigInteger('trang_thai_moi_id');
-            $table->foreign('trang_thai_moi_id')->references('id')->on('trang_thai_chung_tus')->onDelete('cascade');
+            $table->unsignedBigInteger('id_trang_thai_moi');
+            $table->foreign('id_trang_thai_moi')->references('id')->on('trang_thai_chung_tus')->onDelete('cascade');
 
             // Ghi chú
             $table->text('ghi_chu')->nullable();
