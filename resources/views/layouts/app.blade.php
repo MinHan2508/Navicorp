@@ -101,6 +101,9 @@
                 <li><a href="{{ route('trangthaichungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Trạng Thái Chứng từ</span></a></li>
                 <li><a href="{{ route('vaitro.index') }}"><i class="bi bi-file-earmark-text"></i><span>Vai trò/Chức Vụ</span></a></li>
                 <li><a href="{{ route('huongchungtu.index') }}"><i class="bi bi-file-earmark-text"></i><span>Hướng Chứng từ</span></a></li>s
+                <li><a href="{{ route('quytrinh.index') }}"><i class="bi bi-file-earmark-text"></i><span>Quy trình xử lý chứng từ</span></a></li>
+                <li><a href="{{ route('quyenhan.index') }}"><i class="bi bi-file-earmark-text"></i><span>Quyền hạn</span></a></li>
+                <li><a href="{{ route('vaitro_quyenhan.index') }}"><i class="bi bi-file-earmark-text"></i><span>Vai trò/Quyền hạn</span></a></li>
             </ul>
         </li>
             </ul>

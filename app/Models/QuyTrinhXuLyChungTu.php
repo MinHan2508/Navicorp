@@ -33,4 +33,5 @@ class QuyTrinhXuLyChungTu extends Model
     {
         return $this->belongsTo(HuongChungTu::class, 'id_huong');
     }
+    
 }

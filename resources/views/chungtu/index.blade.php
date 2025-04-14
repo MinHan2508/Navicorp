@@ -68,6 +68,7 @@
                             {{ $chungTu->nguoiTao->name ?? 'N/A' }}<br>
                             <small class="text-muted">{{ $chungTu->nguoiTao->email ?? '' }}</small>
                         </td>
+                        
                         <td>
                             @if($chungTu->nguoiTao && $chungTu->nguoiTao->phongBan)
                                 <span class="badge bg-secondary">{{ $chungTu->nguoiTao->phongBan->ten_phong_ban }}</span>
