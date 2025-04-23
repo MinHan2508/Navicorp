@@ -48,6 +48,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profile/change-password', [UserController::class, 'changePassword'])->name('profile.change-password');
 
+    Route::get('/chungtu/tao-moi/di', [ChungTuController::class, 'createDi'])->name('chungtu.create.di');
+    Route::get('/chungtu/tao-moi/noi-bo', [ChungTuController::class, 'createNoiBo'])->name('chungtu.create.noi_bo');
+    Route::get('/chungtu/tiep-nhan/den', [ChungTuController::class, 'createDen'])->name('chungtu.create.den');
+
+
     Route::get('/avatar/{filename}', function ($filename) {
         $path = storage_path('app/img/anhthe/' . $filename);
         if (!file_exists($path)) {

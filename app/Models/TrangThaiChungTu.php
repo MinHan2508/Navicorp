@@ -19,4 +19,6 @@ class TrangThaiChungTu extends Model
         'ten_trang_thai',
         'ghi_chu'
     ];
+
+
 }

@@ -34,6 +34,8 @@ class DoiTacController extends Controller
         ]);
 
         DoiTac::create($validated);
+
+        
         return redirect()->route('doitac.index')->with('success', 'Đối tác đã được tạo thành công.');
     }
 

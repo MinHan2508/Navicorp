@@ -44,7 +44,7 @@ class UserController extends Controller
             'dia_chi' => 'nullable|string|max:255',
             'gioi_tinh' => 'required|in:Nam,Nữ,Khác',
             'ngay_sinh' => 'nullable|date',
-            'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'trang_thai' => 'required|in:Hoạt động,Khóa,Khác',
             'id_phongban' => 'nullable|exists:phong_bans,id',
             'ghi_chu' => 'nullable|string',
@@ -86,7 +86,7 @@ class UserController extends Controller
             'dia_chi' => 'nullable|string|max:255',
             'gioi_tinh' => 'required|in:Nam,Nữ,Khác',
             'ngay_sinh' => 'nullable|date',
-            'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'trang_thai' => 'required|in:Hoạt động,Khóa,Khác',
             'id_phongban' => 'nullable|exists:phong_bans,id',
             'ghi_chu' => 'nullable|string',
@@ -119,7 +119,7 @@ class UserController extends Controller
             'dia_chi' => 'nullable|string|max:255',
             'gioi_tinh' => 'required|in:Nam,Nữ,Khác',
             'ngay_sinh' => 'nullable|date',
-            'anh' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'anh' => 'nullable|image|mimes:jpg,jpeg,png',
             'ghi_chu' => 'nullable|string',
         ]);
 

@@ -33,5 +33,14 @@ class QuyTrinhXuLyChungTu extends Model
     {
         return $this->belongsTo(HuongChungTu::class, 'id_huong');
     }
-    
+
+
+
+    // Load luôn cả trạng thái đích trong mọi truy vấn
+    protected static function booted()
+    {
+        static::addGlobalScope('withTrangThai', function ($builder) {
+            $builder->with(['tuTrangThai', 'denTrangThai', 'huong']);
+        });
+    }
 }

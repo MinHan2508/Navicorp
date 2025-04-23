@@ -34,4 +34,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('vai_tro_quyen_han');
     }
+
+    
 };
