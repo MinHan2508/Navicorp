@@ -61,22 +61,38 @@ Route::middleware(['auth'])->group(function () {
         return response()->file($path);
     })->name('user.avatar');
 
+    
+    // Chứng từ
+    Route::resource('chungtu', ChungTuController::class);
+    Route::match(['get', 'post'], '/chung-tu/{chungTu}/xu-ly', [ChungTuController::class, 'xuLyChungTu'])->name('chungtu.xuly');
+    Route::get('/chungtu/view-file/{id}', [ChungTuController::class, 'viewFile'])->name('chungtu.viewFile');
+     // Đối tác
+     Route::resource('doitac', DoiTacController::class);
+    //Quy trình xử lý chứng từ
+    Route::resource('quytrinh', QuyTrinhXuLyChungTuController::class);
+    
+    // Nhân viên
+    Route::prefix('nhanvien')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('nhanvien.index');
+        Route::get('/create', [UserController::class, 'edit'])->name('nhanvien.edit');
+    });
+
+
+
+    Route::middleware(['auth', 'is_admin'])->group(function () {
+
+        
     // Phòng ban
     Route::resource('phongban', PhongBanController::class);
 
     // Loại chứng từ
     Route::resource('loaichungtu', LoaiChungTuController::class);
 
-    // Chứng từ
-    Route::resource('chungtu', ChungTuController::class);
-    Route::match(['get', 'post'], '/chung-tu/{chungTu}/xu-ly', [ChungTuController::class, 'xuLyChungTu'])->name('chungtu.xuly');
-    Route::get('/chungtu/view-file/{id}', [ChungTuController::class, 'viewFile'])->name('chungtu.viewFile');
-
+    
     // Trạng thái chứng từ
     Route::resource('trangthaichungtu', TrangThaiChungTuController::class);
 
-    // Đối tác
-    Route::resource('doitac', DoiTacController::class);
+   
 
     // Vai trò
     Route::resource('vaitro', VaiTroController::class);
@@ -84,8 +100,7 @@ Route::middleware(['auth'])->group(function () {
     // Hướng chứng từ
     Route::resource('huongchungtu', HuongChungTuController::class);
 
-    //Quy trình xử lý chứng từ
-    Route::resource('quytrinh', QuyTrinhXuLyChungTuController::class);
+    
 
     //quyền hạn
     Route::resource('quyenhan', QuyenHanController::class);
@@ -99,13 +114,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', [VaiTroQuyenHanController::class, 'update'])->name('vaitro_quyenhan.update');
     });
     
-
-
-
-    // Nhân viên
-    Route::prefix('nhanvien')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->name('nhanvien.index');
-        Route::get('/create', [UserController::class, 'edit'])->name('nhanvien.edit');
+    
     });
+
+
+   
 
 });

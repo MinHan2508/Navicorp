@@ -58,11 +58,16 @@ class User extends Authenticatable
     // ✅ Kiểm tra quyền của người dùng
 
     public function coQuyen($maQuyen)
-{
-    // Kiểm tra nếu người dùng có vai trò, thì kiểm tra tồn tại quyền trong DB
-    return $this->vaiTro
-        ? $this->vaiTro->quyenHans()->where('ma_quyen', $maQuyen)->exists()
-        : false;
-}
+    {
+        // Kiểm tra nếu người dùng có vai trò, thì kiểm tra tồn tại quyền trong DB
+        return $this->vaiTro
+            ? $this->vaiTro->quyenHans()->where('ma_quyen', $maQuyen)->exists()
+         
+            : false;
+    }
+    public function coVaiTro($maVaiTro)
+    {
+        return $this->vaiTro && $this->vaiTro->ma_vai_tro === $maVaiTro;
+    }
 
 }

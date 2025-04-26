@@ -67,6 +67,12 @@ class DoiTacController extends Controller
         return redirect()->route('doitac.index')->with('success', 'Đối tác đã được cập nhật thành công.');
     }
 
+    public function show($id)
+{
+    $doiTac = DoiTac::findOrFail($id);
+    return view('doitac.show', compact('doiTac'));
+}
+
     public function destroy($id)
     {
         $doiTac = DoiTac::findOrFail($id);

@@ -11,20 +11,49 @@ use Illuminate\Validation\ValidationException;
 class UserController extends Controller
 {
     public function index(Request $request)
-    {
-        $query = User::query();
+{
+    $user = auth()->user();
+    $vaiTro = $user->vaiTro->ma_vai_tro ?? '';
+    $phongBanId = $user->id_phongban;
 
-        if ($request->has('id_vaitro')) {
-            $query->where('id_vaitro', $request->input('id_vaitro'));
-        }
+    $query = User::query()
+        ->with(['phongBan', 'vaiTro'])
+        ->where('id', '!=', 1) // ẩn super admin gốc
+        ->where('id', '!=', $user->id); // ẩn chính mình
 
-        $query->where('id', '!=', 1)
-              ->where('id', '!=', auth()->id());
-
-        $users = $query->with(['phongBan', 'vaiTro'])->get();
-
-        return view('users.index', compact('users'));
+    // 🎯 Phân quyền
+    if (in_array($vaiTro, ['admin','giamdoc', 'pho_giamdoc'])) {
+        // ✅ toàn quyền xem
+    } elseif (in_array($vaiTro, ['truongphong', 'pho_phong']) && $phongBanId) {
+        $query->where('id_phongban', $phongBanId);
+    } else {
+        $query->where('id', $user->id); // người thường chỉ xem chính mình (đã bị ẩn ở trên)
     }
+
+    // 🔍 Lọc nâng cao
+    if ($request->filled('ten')) {
+        $query->where('name', 'like', '%' . $request->ten . '%');
+    }
+
+    if ($request->filled('email')) {
+        $query->where('email', 'like', '%' . $request->email . '%');
+    }
+
+    if ($request->filled('id_vaitro')) {
+        $query->where('id_vaitro', $request->id_vaitro);
+    }
+
+    if ($request->filled('id_phongban')) {
+        $query->where('id_phongban', $request->id_phongban);
+    }
+
+    $users = $query->get();
+    $vaiTros = \App\Models\VaiTro::all();
+    $phongBans = \App\Models\PhongBan::all();
+
+    return view('users.index', compact('users', 'vaiTros', 'phongBans'));
+}
+
 
     public function create()
     {

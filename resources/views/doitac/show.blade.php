@@ -2,28 +2,47 @@
 
 @section('content')
 <div class="container py-4">
-    <h2 class="mb-4 text-info">🔍 Chi tiết Đối tác</h2>
-
-    <div class="card">
-        <div class="card-body">
-            <h4 class="card-title text-primary">{{ $doiTac->ten_doi_tac }}</h4>
-            <p><strong>Loại đối tác:</strong> {{ $doiTac->loai_doi_tac }}</p>
-            <p><strong>Email:</strong> {{ $doiTac->email ?? '-' }}</p>
-            <p><strong>SĐT:</strong> {{ $doiTac->sdt ?? '-' }}</p>
-            <p><strong>Địa chỉ:</strong> {{ $doiTac->dia_chi ?? '-' }}</p>
-            <p><strong>Mã số thuế:</strong> {{ $doiTac->ma_so_thue ?? '-' }}</p>
-            <p><strong>Fax:</strong> {{ $doiTac->fax ?? '-' }}</p>
-            <p><strong>Người đại diện:</strong> {{ $doiTac->nguoi_dai_dien ?? '-' }}</p>
-            <p><strong>Chức vụ đại diện:</strong> {{ $doiTac->chuc_vu_dai_dien ?? '-' }}</p>
-            <p><strong>Website:</strong> {{ $doiTac->website ?? '-' }}</p>
-            <p><strong>Ghi chú:</strong> {{ $doiTac->ghi_chu ?? '-' }}</p>
-            <p><strong>Ngày tạo:</strong> {{ $doiTac->created_at->format('d/m/Y H:i') }}</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-info">Thông tin chi tiết Đối tác</h2>
+        <div>
+            <a href="{{ route('doitac.edit', $doiTac->id) }}" class="btn btn-warning me-2">
+                ✏️ Chỉnh sửa
+            </a>
+            <a href="{{ route('doitac.index') }}" class="btn btn-secondary">
+                ← Quay lại danh sách
+            </a>
         </div>
     </div>
 
-    <div class="mt-3">
-        <a href="{{ route('doitac.edit', $doiTac->id) }}" class="btn btn-warning">✏️ Chỉnh sửa</a>
-        <a href="{{ route('doitac.index') }}" class="btn btn-secondary">← Quay lại</a>
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h4 class="text-primary mb-0"> Tên đối tác: {{ $doiTac->ten_doi_tac }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Loại đối tác:</strong> {{ $doiTac->loai_doi_tac }}</div>
+                <div class="col-md-6"><strong>Email:</strong> {{ $doiTac->email ?? '-' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Số điện thoại:</strong> {{ $doiTac->sdt ?? '-' }}</div>
+                <div class="col-md-6"><strong>Địa chỉ:</strong> {{ $doiTac->dia_chi ?? '-' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Mã số thuế:</strong> {{ $doiTac->ma_so_thue ?? '-' }}</div>
+                <div class="col-md-6"><strong>Fax:</strong> {{ $doiTac->fax ?? '-' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Người đại diện:</strong> {{ $doiTac->nguoi_dai_dien ?? '-' }}</div>
+                <div class="col-md-6"><strong>Chức vụ:</strong> {{ $doiTac->chuc_vu_dai_dien ?? '-' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Website:</strong> {{ $doiTac->website ?? '-' }}</div>
+                <div class="col-md-6"><strong>Ghi chú:</strong> {{ $doiTac->ghi_chu ?? '-' }}</div>
+            </div>
+            <div class="text-end text-muted">
+                <small>Ngày tạo: {{ $doiTac->created_at->format('d/m/Y H:i') }}</small>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

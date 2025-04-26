@@ -26,50 +26,75 @@
             </thead>
             <tbody>
                 @foreach($chungTus as $chungTu)
-                <tr class="clickable-row" data-href="{{ route('chungtu.show', $chungTu->id) }}">
-                    <td class="text-center">{{ $loop->iteration }}</td>
-                    <td>{{ $chungTu->ma_chung_tu }}</td>
-                    <td>{{ $chungTu->tieu_de }}</td>
-                    <td>{{ $chungTu->so_hieu ?? '-' }}</td>
-                    <td><span class="badge bg-info">{{ $chungTu->loaiChungTu->ten_loai_chung_tu ?? 'N/A' }}</span></td>
-                    <td>{{ $chungTu->trich_yeu ?? '-' }}</td>
-                    <td>{{ $chungTu->noi_ban_hanh ?? '-' }}</td>
-                    <td class="text-center">{{ $chungTu->ngay_ban_hanh ? \Carbon\Carbon::parse($chungTu->ngay_ban_hanh)->format('d/m/Y') : '-' }}</td>
-                    <td class="text-center">
-                        @if($chungTu->ngay_hieu_luc)
-                            {{ \Carbon\Carbon::parse($chungTu->ngay_hieu_luc)->format('d/m/Y') }}
-                            <br>→
-                            {{ $chungTu->ngay_het_hieu_luc ? \Carbon\Carbon::parse($chungTu->ngay_het_hieu_luc)->format('d/m/Y') : 'Không rõ' }}
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td class="text-center">{{ $chungTu->huong->ten_huong_chung_tu ?? '-' }}</td>
-                    <td><span class="badge bg-warning text-dark">{{ $chungTu->trangThai->ten_trang_thai ?? 'N/A' }}</span></td>
-                    <td>{{ $chungTu->nguoiTao->name ?? 'N/A' }}<br><small class="text-muted">{{ $chungTu->nguoiTao->email ?? '' }}</small></td>
-                    <td>
-                        @if($chungTu->nguoiTao && $chungTu->nguoiTao->phongBan)
-                            <span class="badge bg-secondary">{{ $chungTu->nguoiTao->phongBan->ten_phong_ban }}</span>
-                        @else
-                            <span class="text-muted">Chưa có</span>
-                        @endif
-                    </td>
-                    <td>{{ $chungTu->nguoiGuiDoiTac->ten_doi_tac ?? '-' }}</td>
-                    <td>{{ $chungTu->created_at->format('d/m/Y') }}</td>
-                    <td class="text-center">{{ $chungTu->ky_so ? '✅' : '❌' }}</td>
-                    <td class="text-center">
-                        <a href="{{ route('chungtu.show', $chungTu->id) }}" class="btn btn-sm btn-outline-info">👁️</a>
-                        <a href="{{ route('chungtu.edit', $chungTu->id) }}" class="btn btn-sm btn-outline-warning">✏️</a>
-                        <form action="{{ route('chungtu.destroy', $chungTu->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa chứng từ này?')">
-                                🗑️
-                            </button>
-                        </form>
-                    </td>
-                </tr>
+                            <tr class="clickable-row" data-href="{{ route('chungtu.show', $chungTu->id) }}">
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>{{ $chungTu->ma_chung_tu }}</td>
+                                <td>{{ $chungTu->tieu_de }}</td>
+                                <td>{{ $chungTu->so_hieu ?? '-' }}</td>
+                                <td><span class="badge bg-info">{{ $chungTu->loaiChungTu->ten_loai_chung_tu ?? 'N/A' }}</span></td>
+                                <td>{{ $chungTu->trich_yeu ?? '-' }}</td>
+                                <td>{{ $chungTu->noi_ban_hanh ?? '-' }}</td>
+                                <td class="text-center">
+                                    {{ $chungTu->ngay_ban_hanh ? \Carbon\Carbon::parse($chungTu->ngay_ban_hanh)->format('d/m/Y') : '-' }}
+                                </td>
+                                <td class="text-center">
+                                    @if($chungTu->ngay_hieu_luc)
+                                        {{ \Carbon\Carbon::parse($chungTu->ngay_hieu_luc)->format('d/m/Y') }}
+                                        <br>→
+                                        {{ $chungTu->ngay_het_hieu_luc ? \Carbon\Carbon::parse($chungTu->ngay_het_hieu_luc)->format('d/m/Y') : 'Không rõ' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="text-center">{{ $chungTu->huong->ten_huong_chung_tu ?? '-' }}</td>
+                                <td><span class="badge bg-warning text-dark">{{ $chungTu->trangThai->ten_trang_thai ?? 'N/A' }}</span>
+                                </td>
+                                <td>{{ $chungTu->nguoiTao->name ?? 'N/A' }}<br><small
+                                        class="text-muted">{{ $chungTu->nguoiTao->email ?? '' }}</small></td>
+                                <td>
+                                    @if($chungTu->nguoiTao && $chungTu->nguoiTao->phongBan)
+                                        <span class="badge bg-secondary">{{ $chungTu->nguoiTao->phongBan->ten_phong_ban }}</span>
+                                    @else
+                                        <span class="text-muted">Chưa có</span>
+                                    @endif
+                                </td>
+                                <td>{{ $chungTu->nguoiGuiDoiTac->ten_doi_tac ?? '-' }}</td>
+                                <td>{{ $chungTu->created_at->format('d/m/Y') }}</td>
+                                <td class="text-center">{{ $chungTu->ky_so ? '✅' : '❌' }}</td>
+                                <td class="text-center text-nowrap">
+                                    {{-- Nút xem: luôn hiển thị --}}
+                                    <a href="{{ route('chungtu.show', $chungTu->id) }}" class="btn btn-sm btn-outline-info" title="Xem">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    {{-- Điều kiện: là người tạo --}}
+                                    @php
+                                        $laNguoiTao = auth()->id() === $chungTu->id_nguoi_tao;
+                                        $maTrangThai = $chungTu->trangThai->ma_trang_thai ?? '';
+                                    @endphp
+
+                                    {{-- Nút sửa nếu là người tạo và trạng thái là TAO_MOI hoặc TU_CHOI --}}
+                                    @if($laNguoiTao && in_array($maTrangThai, ['TAO_MOI', 'TU_CHOI']))
+                                        <a href="{{ route('chungtu.edit', $chungTu->id) }}" class="btn btn-sm btn-outline-warning"
+                                            title="Sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    @endif
+
+                                    {{-- Nút xoá chỉ khi trạng thái là TAO_MOI --}}
+                                    @if($laNguoiTao && $maTrangThai === 'TAO_MOI')
+                                        <form action="{{ route('chungtu.destroy', $chungTu->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" onclick="return confirm('Bạn có chắc chắn muốn xóa chứng từ này?')"
+                                                class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
+
+                            </tr>
                 @endforeach
             </tbody>
         </table>

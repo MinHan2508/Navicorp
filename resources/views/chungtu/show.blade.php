@@ -16,7 +16,7 @@
     </nav>
 
     {{-- Timeline xử lý --}}
-    <h5 class="mt-5">📜 Sơ đồ timeline xử lý chứng từ</h5>
+    <h5 class="mt-5">📜 Sơ đồ xử lý chứng từ</h5>
     <div class="timeline-wrapper mt-4">
         @foreach($lichSu as $index => $ls)
             <div class="timeline-step">
@@ -26,7 +26,10 @@
                 <div class="timeline-content">
                     <div class="timeline-date">{{ $ls->created_at->format('d/m/Y H:i:s') }}</div>
                     <div class="timeline-title">{{ $ls->trangThaiMoi->ten_trang_thai ?? 'Không xác định' }}</div>
-                    <div class="timeline-sub">Người xử lý: {{ $ls->nguoiThayDoi->name ?? 'Không rõ' }}</div>
+                    <div class="timeline-sub">               Người xử lý: 
+                        {{ $ls->nguoiThayDoi->name ?? 'Không rõ' }} </div>
+                        <div class="text-muted small">{{ $ls->nguoiThayDoi->email ?? 'Không có email' }}</div>
+                   
                     <div class="timeline-note">📝 {{ $ls->ghi_chu }}</div>
                 </div>
             </div>
@@ -136,6 +139,9 @@
                         case 'DA_KY_SO':
                             $coTheXuLy = $user->coQuyen('ky_so');
                             break;
+                        case 'DA_LUU_TRU':
+                            $coTheXuLy = $user->coQuyen('tiep_nhan_chung_tu');
+                            break;
                         default:
                             $coTheXuLy = $user->coQuyen('duyet_khac');
                     }
@@ -181,6 +187,9 @@
     {{-- JS xử lý SweetAlert --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('js/tu_choi.js') }}"></script>
+    <a href="{{ route('chungtu.viewFile', $chungTu->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+    📄 Xem file
+</a>
 
     
 </div>
