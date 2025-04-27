@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\{ChungTu, LoaiChungTu, TrangThaiChungTu, DoiTac, HuongChungTu, LichSuChungTu, QuyTrinhXuLyChungTu};
 
 use App\Models\User;
-USE App\Models\PhongBan;
+use App\Models\PhongBan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Storage, Auth};
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ThongBaoXuLyChungTu;
 
 class ChungTuController extends Controller
 {
@@ -138,43 +140,43 @@ class ChungTuController extends Controller
         }
 
         // ✅ Trạng thái
-    if ($request->filled('id_trang_thai')) {
-        $query->where('id_trang_thai_hien_tai', $request->id_trang_thai);
-    }
+        if ($request->filled('id_trang_thai')) {
+            $query->where('id_trang_thai_hien_tai', $request->id_trang_thai);
+        }
 
-    // ✅ Người tạo
-    if ($request->filled('id_nguoi_tao')) {
-        $query->where('id_nguoi_tao', $request->id_nguoi_tao);
-    }
+        // ✅ Người tạo
+        if ($request->filled('id_nguoi_tao')) {
+            $query->where('id_nguoi_tao', $request->id_nguoi_tao);
+        }
 
-    // ✅ Phòng ban
-    if ($request->filled('id_phong_ban')) {
-        $query->whereHas('nguoiTao', function ($q) use ($request) {
-            $q->where('id_phongban', $request->id_phong_ban);
-        });
-    }
+        // ✅ Phòng ban
+        if ($request->filled('id_phong_ban')) {
+            $query->whereHas('nguoiTao', function ($q) use ($request) {
+                $q->where('id_phongban', $request->id_phong_ban);
+            });
+        }
 
-    // ✅ Ngày tạo (từ - đến)
-    if ($request->filled('tu_ngay')) {
-        $query->whereDate('created_at', '>=', $request->tu_ngay);
-    }
-    if ($request->filled('den_ngay')) {
-        $query->whereDate('created_at', '<=', $request->den_ngay);
-    }
+        // ✅ Ngày tạo (từ - đến)
+        if ($request->filled('tu_ngay')) {
+            $query->whereDate('created_at', '>=', $request->tu_ngay);
+        }
+        if ($request->filled('den_ngay')) {
+            $query->whereDate('created_at', '<=', $request->den_ngay);
+        }
 
-    $chungTus = $query->orderByDesc('created_at')->get();
-    $nguoiTaos = User::all();
-    $trangThais = TrangThaiChungTu::all();
-    $phongBans = PhongBan::all();
+        $chungTus = $query->orderByDesc('created_at')->get();
+        $nguoiTaos = User::all();
+        $trangThais = TrangThaiChungTu::all();
+        $phongBans = PhongBan::all();
 
-    $chungTus = $query->get();
-    return view('chungtu.index', compact('chungTus', 'nguoiTaos', 'trangThais', 'phongBans'));
+        $chungTus = $query->get();
+        return view('chungtu.index', compact('chungTus', 'nguoiTaos', 'trangThais', 'phongBans'));
 
-        
+
         // Nếu không phải admin/giamdoc/pho_giamdoc => lọc theo quyền người dùng
-          
-           
-      
+
+
+
 
     }
 
@@ -205,8 +207,8 @@ class ChungTuController extends Controller
         return view('chungtu.create_noi_bo', [
             'loaiChungTus' => LoaiChungTu::all(),
             'doiTacs' => DoiTac::all(),
-            'huongMacDinh' => HuongChungTu::where('ma_huong_chung_tu','like', 'NOI_BO%')->first()?->id,
-            'tenHuong' => HuongChungTu::where('ma_huong_chung_tu', 'like','NOI_BO%')->first()?->ten_huong_chung_tu,
+            'huongMacDinh' => HuongChungTu::where('ma_huong_chung_tu', 'like', 'NOI_BO%')->first()?->id,
+            'tenHuong' => HuongChungTu::where('ma_huong_chung_tu', 'like', 'NOI_BO%')->first()?->ten_huong_chung_tu,
             'chungTu' => new ChungTu()
         ]);
     }
@@ -216,8 +218,8 @@ class ChungTuController extends Controller
         return view('chungtu.create_den', [
             'loaiChungTus' => LoaiChungTu::all(),
             'doiTacs' => DoiTac::all(),
-            'huongMacDinh' => HuongChungTu::where('ma_huong_chung_tu','like', 'DEN%')->first()?->id,
-            'tenHuong' => HuongChungTu::where('ma_huong_chung_tu', 'like','DEN%')->first()?->ten_huong_chung_tu,
+            'huongMacDinh' => HuongChungTu::where('ma_huong_chung_tu', 'like', 'DEN%')->first()?->id,
+            'tenHuong' => HuongChungTu::where('ma_huong_chung_tu', 'like', 'DEN%')->first()?->ten_huong_chung_tu,
             'chungTu' => new ChungTu()
         ]);
     }
@@ -263,8 +265,9 @@ class ChungTuController extends Controller
             'id_trang_thai_moi' => $chungTu->id_trang_thai_hien_tai,
             'ghi_chu' => 'Khởi tạo chứng từ',
         ]);
-        
 
+
+        $this->guiMailNguoiXuLyTiepTheo($chungTu); // 💥 Gửi mail ngay bước đầu tiên
         return redirect()->route('chungtu.index')->with('success', 'Chứng từ được tạo thành công.');
     }
 
@@ -276,11 +279,11 @@ class ChungTuController extends Controller
 
         // Lấy user hiện tại
         $user = auth()->user();
-    
+
         // Kiểm tra quyền: chỉ người tạo và trạng thái phù hợp mới được sửa
         $trangThaiChoPhep = ['TAO_MOI', 'TU_CHOI'];
         $maTrangThai = optional($chungTu->trangThai)->ma_trang_thai;
-    
+
         if ($chungTu->id_nguoi_tao !== $user->id || !in_array($maTrangThai, $trangThaiChoPhep)) {
             return redirect()->route('chungtu.index')->with('error', 'Bạn không có quyền chỉnh sửa chứng từ này.');
         }
@@ -328,102 +331,102 @@ class ChungTuController extends Controller
 
 
     public function update(Request $request, $id)
-{
-    $chungTu = ChungTu::findOrFail($id);
+    {
+        $chungTu = ChungTu::findOrFail($id);
 
-    // Trạng thái hệ thống
-    $idTuChoi = TrangThaiChungTu::where('ma_trang_thai', 'TU_CHOI')->value('id');
-    $idTaoMoi = TrangThaiChungTu::where('ma_trang_thai', 'TAO_MOI')->value('id');
+        // Trạng thái hệ thống
+        $idTuChoi = TrangThaiChungTu::where('ma_trang_thai', 'TU_CHOI')->value('id');
+        $idTaoMoi = TrangThaiChungTu::where('ma_trang_thai', 'TAO_MOI')->value('id');
 
-    $validated = $request->validate([
-        'ma_chung_tu' => 'required|string|max:255|unique:chung_tus,ma_chung_tu,' . $chungTu->id,
-        'tieu_de' => 'required|string|max:255',
-        'so_hieu' => 'nullable|string',
-        'trich_yeu' => 'nullable|string',
-        'noi_ban_hanh' => 'nullable|string',
-        'ngay_ban_hanh' => 'nullable|date',
-        'ngay_hieu_luc' => 'nullable|date',
-        'ngay_het_hieu_luc' => 'nullable|date',
-        'ky_so' => 'nullable',
-        'ghi_chu' => 'nullable|string',
-        'duong_dan' => 'nullable|file|mimes:pdf,doc,docx,xlsx,xls|max:2048',
-        'id_loai_chung_tu' => 'required|exists:loai_chung_tus,id',
-        'id_nguoi_tao' => 'nullable|exists:users,id',
-        'id_nguoi_gui_doi_tac' => 'nullable|exists:doi_tacs,id',
-        'id_trang_thai_hien_tai' => 'required|exists:trang_thai_chung_tus,id',
-        'id_huong' => 'nullable|exists:huong_chung_tus,id',
-    ]);
-
-    $validated['ky_so'] = $request->has('ky_so');
-
-    $trangThaiCu = $chungTu->id_trang_thai_hien_tai;
-
-    // Nếu trạng thái là từ chối → chuyển về tạo mới
-    if ($trangThaiCu == $idTuChoi) {
-        $validated['id_trang_thai_hien_tai'] = $idTaoMoi;
-
-        // Ghi lịch sử chuyển trạng thái
-        LichSuChungTu::create([
-            'id_chung_tu' => $chungTu->id,
-            'id_trang_thai_cu' => $trangThaiCu,
-            'id_trang_thai_moi' => $idTaoMoi,
-            'id_nguoi_thay_doi' => auth()->id(),
-            'ghi_chu' => 'Người tạo cập nhật lại chứng từ sau khi bị từ chối.',
+        $validated = $request->validate([
+            'ma_chung_tu' => 'required|string|max:255|unique:chung_tus,ma_chung_tu,' . $chungTu->id,
+            'tieu_de' => 'required|string|max:255',
+            'so_hieu' => 'nullable|string',
+            'trich_yeu' => 'nullable|string',
+            'noi_ban_hanh' => 'nullable|string',
+            'ngay_ban_hanh' => 'nullable|date',
+            'ngay_hieu_luc' => 'nullable|date',
+            'ngay_het_hieu_luc' => 'nullable|date',
+            'ky_so' => 'nullable',
+            'ghi_chu' => 'nullable|string',
+            'duong_dan' => 'nullable|file|mimes:pdf,doc,docx,xlsx,xls|max:2048',
+            'id_loai_chung_tu' => 'required|exists:loai_chung_tus,id',
+            'id_nguoi_tao' => 'nullable|exists:users,id',
+            'id_nguoi_gui_doi_tac' => 'nullable|exists:doi_tacs,id',
+            'id_trang_thai_hien_tai' => 'required|exists:trang_thai_chung_tus,id',
+            'id_huong' => 'nullable|exists:huong_chung_tus,id',
         ]);
-    }
 
-    // Nếu có file mới
-    if ($request->hasFile('duong_dan')) {
-        $oldPath = "chungtu/{$chungTu->loaiChungTu->ma_loai_chung_tu}/{$chungTu->updated_at->year}/{$chungTu->updated_at->format('m')}/{$chungTu->duong_dan}";
-        if ($chungTu->duong_dan && Storage::disk('local')->exists($oldPath)) {
-            Storage::disk('local')->delete($oldPath);
+        $validated['ky_so'] = $request->has('ky_so');
+
+        $trangThaiCu = $chungTu->id_trang_thai_hien_tai;
+
+        // Nếu trạng thái là từ chối → chuyển về tạo mới
+        if ($trangThaiCu == $idTuChoi) {
+            $validated['id_trang_thai_hien_tai'] = $idTaoMoi;
+
+            // Ghi lịch sử chuyển trạng thái
+            LichSuChungTu::create([
+                'id_chung_tu' => $chungTu->id,
+                'id_trang_thai_cu' => $trangThaiCu,
+                'id_trang_thai_moi' => $idTaoMoi,
+                'id_nguoi_thay_doi' => auth()->id(),
+                'ghi_chu' => 'Người tạo cập nhật lại chứng từ sau khi bị từ chối.',
+            ]);
         }
 
-        
-        $file = $request->file('duong_dan');
-        $now = now();
-        $maLoai = LoaiChungTu::find($validated['id_loai_chung_tu'])->ma_loai_chung_tu;
-        $path = "chungtu/{$maLoai}/{$now->year}/{$now->format('m')}";
-        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $file->storeAs($path, $fileName, 'local');
-        $validated['duong_dan'] = $fileName;
-    }
-
-    $chungTu->update($validated);
-
-    return redirect()->route('chungtu.index')->with('success', 'Cập nhật chứng từ thành công.');
-}
+        // Nếu có file mới
+        if ($request->hasFile('duong_dan')) {
+            $oldPath = "chungtu/{$chungTu->loaiChungTu->ma_loai_chung_tu}/{$chungTu->updated_at->year}/{$chungTu->updated_at->format('m')}/{$chungTu->duong_dan}";
+            if ($chungTu->duong_dan && Storage::disk('local')->exists($oldPath)) {
+                Storage::disk('local')->delete($oldPath);
+            }
 
 
-public function destroy($id)
-{
-    $chungTu = ChungTu::findOrFail($id);
-
-    // Kiểm tra quyền: chỉ người tạo và trạng thái là "TẠO_MỚI" mới được xóa
-    $idTaoMoi = \App\Models\TrangThaiChungTu::where('ma_trang_thai', 'TAO_MOI')->value('id');
-
-    if (
-        $chungTu->id_nguoi_tao !== auth()->id() || 
-        $chungTu->id_trang_thai_hien_tai !== $idTaoMoi
-    ) {
-        return redirect()->route('chungtu.index')->with('error', 'Bạn không có quyền xóa chứng từ này.');
-    }
-
-    // Xóa file nếu có
-    if ($chungTu->duong_dan) {
-        $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
-        $updated = $chungTu->updated_at ?? now();
-        $filePath = "chungtu/{$maLoai}/{$updated->format('Y')}/{$updated->format('m')}/{$chungTu->duong_dan}";
-
-        if (Storage::disk('local')->exists($filePath)) {
-            Storage::disk('local')->delete($filePath);
+            $file = $request->file('duong_dan');
+            $now = now();
+            $maLoai = LoaiChungTu::find($validated['id_loai_chung_tu'])->ma_loai_chung_tu;
+            $path = "chungtu/{$maLoai}/{$now->year}/{$now->format('m')}";
+            $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs($path, $fileName, 'local');
+            $validated['duong_dan'] = $fileName;
         }
+
+        $chungTu->update($validated);
+
+        return redirect()->route('chungtu.index')->with('success', 'Cập nhật chứng từ thành công.');
     }
 
-    $chungTu->delete();
 
-    return redirect()->route('chungtu.index')->with('success', 'Chứng từ đã được xóa thành công.');
-}
+    public function destroy($id)
+    {
+        $chungTu = ChungTu::findOrFail($id);
+
+        // Kiểm tra quyền: chỉ người tạo và trạng thái là "TẠO_MỚI" mới được xóa
+        $idTaoMoi = \App\Models\TrangThaiChungTu::where('ma_trang_thai', 'TAO_MOI')->value('id');
+
+        if (
+            $chungTu->id_nguoi_tao !== auth()->id() ||
+            $chungTu->id_trang_thai_hien_tai !== $idTaoMoi
+        ) {
+            return redirect()->route('chungtu.index')->with('error', 'Bạn không có quyền xóa chứng từ này.');
+        }
+
+        // Xóa file nếu có
+        if ($chungTu->duong_dan) {
+            $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
+            $updated = $chungTu->updated_at ?? now();
+            $filePath = "chungtu/{$maLoai}/{$updated->format('Y')}/{$updated->format('m')}/{$chungTu->duong_dan}";
+
+            if (Storage::disk('local')->exists($filePath)) {
+                Storage::disk('local')->delete($filePath);
+            }
+        }
+
+        $chungTu->delete();
+
+        return redirect()->route('chungtu.index')->with('success', 'Chứng từ đã được xóa thành công.');
+    }
 
 
     public function viewFile($id)
@@ -444,29 +447,27 @@ public function destroy($id)
     }
 
 
+
+
     public function xuLyChungTu(Request $request, ChungTu $chungTu)
     {
-
         $user = auth()->user();
         $idTrangThaiHienTai = $chungTu->id_trang_thai_hien_tai;
         $idHuong = $chungTu->id_huong;
         $trangThaiHienTai = $chungTu->trangThai->ma_trang_thai ?? null;
-
         $phongBanNguoiTao = $chungTu->nguoiTao->id_phongban ?? null;
         $phongBanNguoiDung = $user->id_phongban ?? null;
 
-        // ===== TỪ CHỐI =====
         if ($request->has('tu_choi')) {
             if (!$user->coQuyen('tu_choi_chung_tu')) {
                 return back()->with('error', 'Bạn không có quyền từ chối chứng từ.');
             }
 
             if (!in_array($trangThaiHienTai, ['TAO_MOI', 'DA_DUYET_CAP_PHONG'])) {
-                return back()->with('error', 'Chỉ có thể từ chối khi ở trạng thái Tạo mới hoặc Duyệt cấp phòng.');
+                return back()->with('error', 'Chỉ có thể từ chối ở trạng thái Tạo mới hoặc Duyệt cấp phòng.');
             }
 
             $idTuChoi = TrangThaiChungTu::where('ma_trang_thai', 'TU_CHOI')->value('id');
-
             $chungTu->update(['id_trang_thai_hien_tai' => $idTuChoi]);
 
             LichSuChungTu::create([
@@ -479,7 +480,6 @@ public function destroy($id)
             return back()->with('error', 'Chứng từ đã bị từ chối.');
         }
 
-        // ===== DUYỆT =====
         if ($request->has('thu_tu')) {
             $thuTu = $request->input('thu_tu');
 
@@ -489,12 +489,11 @@ public function destroy($id)
                 ->first();
 
             if (!$nextXuLy) {
-                return back()->with('error', 'Không tìm thấy bước xử lý tương ứng.');
+                return back()->with('error', 'Không tìm thấy bước xử lý tiếp theo.');
             }
 
             $trangThaiKeTiep = optional($nextXuLy->trangThaiDen)->ma_trang_thai ?? null;
 
-            // ==== Kiểm tra theo trạng thái đích cụ thể ====
             switch ($trangThaiKeTiep) {
                 case 'DA_DUYET_CAP_PHONG':
                     if (!$user->coQuyen('duyet_cap_phong')) {
@@ -504,37 +503,34 @@ public function destroy($id)
                         return back()->with('error', 'Bạn không cùng phòng ban với người tạo chứng từ.');
                     }
                     break;
-
                 case 'DA_DUYET':
                     if (!$user->coQuyen('duyet_lanh_dao')) {
                         return back()->with('error', 'Bạn không có quyền duyệt cấp lãnh đạo.');
                     }
                     if ($trangThaiHienTai !== 'DA_DUYET_CAP_PHONG') {
-                        return back()->with('error', 'Phải duyệt cấp phòng trước khi lên lãnh đạo.');
+                        return back()->with('error', 'Phải duyệt cấp phòng trước.');
                     }
                     break;
-
                 case 'DA_GUI':
                     if (!$user->coQuyen('gui_chung_tu')) {
                         return back()->with('error', 'Bạn không có quyền gửi chứng từ.');
                     }
                     break;
-
                 case 'KY_SO':
                     if (!$user->coQuyen('ky_so')) {
-                        return back()->with('error', 'Bạn không có quyền ký số chứng từ.');
+                        return back()->with('error', 'Bạn không có quyền ký số.');
                     }
                     break;
                 case 'DA_LUU_TRU':
-                    if (!$user->coQuyen('luu_tru_chung_tu' )  || !$user->coQuyen('luu_tru_chung_tu' )      ) {
-                        return back()->with('error', 'Bạn không có quyền lưu trữ file.');
+                    if (!$user->coQuyen('luu_tru_chung_tu')) {
+                        return back()->with('error', 'Bạn không có quyền lưu trữ.');
                     }
-    
-                   
+                    break;
             }
 
-            // ==== Cập nhật trạng thái mới ====
-            $chungTu->update(['id_trang_thai_hien_tai' => $nextXuLy->id_den_trang_thai]);
+            $chungTu->update([
+                'id_trang_thai_hien_tai' => $nextXuLy->id_den_trang_thai,
+            ]);
 
             LichSuChungTu::create([
                 'id_chung_tu' => $chungTu->id,
@@ -543,13 +539,60 @@ public function destroy($id)
                 'ghi_chu' => $request->input('ghi_chu') ?? "Đã thực hiện bước: {$nextXuLy->mo_ta}",
             ]);
 
+            $chungTu->load('nguoiTao.vaiTro');
+
+            // ===== Gửi email cho người xử lý bước tiếp theo =====
+            $this->guiMailNguoiXuLyTiepTheo($chungTu);
+            
+
             return back()->with('success', "✅ Đã chuyển bước: {$nextXuLy->mo_ta}");
         }
 
-        return back()->with('error', 'Không có hành động được chọn.');
+        return back()->with('error', 'Không có hành động nào được chọn.');
     }
+    protected function guiMailNguoiXuLyTiepTheo(ChungTu $chungTu)
+    {
+        try {
+            $trangThai = $chungTu->trangThai->ma_trang_thai ?? null;
+            $userTao = $chungTu->nguoiTao;
+            $nguoiNhansQuery = User::query();
 
-
+          
+    
+            if ($trangThai === 'TAO_MOI') {
+                // Gửi cho trưởng phòng/phó phòng phòng ban của người tạo
+                $nguoiNhansQuery->whereHas('vaiTro', fn($q) =>
+                    $q->whereIn('ma_vai_tro', ['truongphong', 'pho_phong'])
+                )->where('id_phongban', $userTao->id_phongban);
+            } elseif ($trangThai === 'DA_DUYET_CAP_PHONG') {
+                // Gửi cho lãnh đạo
+                $nguoiNhansQuery->whereHas('vaiTro', fn($q) =>
+                    $q->whereIn('ma_vai_tro', ['giamdoc', 'pho_giamdoc'])
+                );
+            } elseif ($trangThai === 'DA_DUYET') {
+                // Gửi cho người ký số (giám đốc)
+                $nguoiNhansQuery->whereHas('vaiTro', fn($q) =>
+                    $q->where('ma_vai_tro', 'giamdoc')
+                );
+            } elseif ($trangThai === 'KY_SO') {
+                // Sau khi ký, gửi cho người gửi chứng từ đi
+                $nguoiNhansQuery->where('id', $userTao->id);
+            } else {
+                return; // Không gửi mail nếu không đúng trạng thái cần gửi
+            }
+    
+            $nguoiNhans = $nguoiNhansQuery->get();
+    
+            foreach ($nguoiNhans as $nguoiNhan) {
+                if ($nguoiNhan->email) {
+                    \Mail::to($nguoiNhan->email)->send(new \App\Mail\ThongBaoXuLyChungTu($chungTu, $nguoiNhan));
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi mail chứng từ: ' . $e->getMessage());
+        }
+    }
+    
 
 
 }

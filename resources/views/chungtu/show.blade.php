@@ -35,6 +35,16 @@
             </div>
         @endforeach
     </div>
+            @if (session('danhSachEmailNguoiNhan'))
+        <div class="alert alert-info">
+            <strong>📧 Email đã gửi đến:</strong>
+            <ul class="mb-0">
+                @foreach (session('danhSachEmailNguoiNhan') as $nguoiNhan)
+                    <li>{{ $nguoiNhan }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 
     {{-- Thông tin chứng từ --}}
     <div class="card shadow-sm border-0">

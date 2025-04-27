@@ -27,6 +27,17 @@ Auth::routes();
 // Trang sau khi đăng nhập
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+//test mail
+Route::get('/test-mail', function () {
+    Mail::raw('Đây là nội dung test gửi mail thành công.', function ($message) {
+        $message->to('nguyendinhminhkhang045@gmail.com') // Email người nhận
+                ->subject('🎯 Test gửi mail từ NAVICORP');
+    });
+
+    return '✅ Đã gửi thử mail! Kiểm tra hộp thư đi.';
+});
+
+
 // Tất cả các route bắt buộc phải đăng nhập mới được dùng
 Route::middleware(['auth'])->group(function () {
 
