@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ThongBaoXuLyChungTu;
 
+
 class ChungTuController extends Controller
 {
     public function index(Request $request)
@@ -266,8 +267,8 @@ class ChungTuController extends Controller
             'ghi_chu' => 'Khởi tạo chứng từ',
         ]);
 
+        $this->guiMailNguoiXuLyTiepTheo($chungTu);
 
-        $this->guiMailNguoiXuLyTiepTheo($chungTu); // 💥 Gửi mail ngay bước đầu tiên
         return redirect()->route('chungtu.index')->with('success', 'Chứng từ được tạo thành công.');
     }
 
@@ -298,6 +299,9 @@ class ChungTuController extends Controller
             'huongChungTus' => HuongChungTu::all(),
             'doiTacs' => DoiTac::all(),
         ]);
+
+
+
     }
 
 
@@ -458,13 +462,16 @@ class ChungTuController extends Controller
         $phongBanNguoiTao = $chungTu->nguoiTao->id_phongban ?? null;
         $phongBanNguoiDung = $user->id_phongban ?? null;
 
+
+        $nguoiNhansQuery = User::query();
+
         if ($request->has('tu_choi')) {
             if (!$user->coQuyen('tu_choi_chung_tu')) {
                 return back()->with('error', 'Bạn không có quyền từ chối chứng từ.');
             }
 
             if (!in_array($trangThaiHienTai, ['TAO_MOI', 'DA_DUYET_CAP_PHONG'])) {
-                return back()->with('error', 'Chỉ có thể từ chối ở trạng thái Tạo mới hoặc Duyệt cấp phòng.');
+                return back()->with('error', 'Chỉ từ chối ở trạng thái Tạo mới hoặc Duyệt cấp phòng.');
             }
 
             $idTuChoi = TrangThaiChungTu::where('ma_trang_thai', 'TU_CHOI')->value('id');
@@ -476,6 +483,9 @@ class ChungTuController extends Controller
                 'id_trang_thai_moi' => $idTuChoi,
                 'ghi_chu' => $request->input('ghi_chu') ?? 'Người xử lý đã từ chối chứng từ.',
             ]);
+
+            // 🔥 Gửi email thông báo từ chối
+            $this->guiMailThongBaoTuChoi($chungTu);
 
             return back()->with('error', 'Chứng từ đã bị từ chối.');
         }
@@ -496,24 +506,13 @@ class ChungTuController extends Controller
 
             switch ($trangThaiKeTiep) {
                 case 'DA_DUYET_CAP_PHONG':
-                    if (!$user->coQuyen('duyet_cap_phong')) {
-                        return back()->with('error', 'Bạn chưa được phân quyền duyệt cấp phòng.');
-                    }
-                    if ($phongBanNguoiTao !== $phongBanNguoiDung) {
-                        return back()->with('error', 'Bạn không cùng phòng ban với người tạo chứng từ.');
+                    if (!$user->coQuyen('duyet_cap_phong') || $phongBanNguoiTao !== $phongBanNguoiDung) {
+                        return back()->with('error', 'Bạn không có quyền duyệt cấp phòng hoặc không cùng phòng ban.');
                     }
                     break;
                 case 'DA_DUYET':
-                    if (!$user->coQuyen('duyet_lanh_dao')) {
-                        return back()->with('error', 'Bạn không có quyền duyệt cấp lãnh đạo.');
-                    }
-                    if ($trangThaiHienTai !== 'DA_DUYET_CAP_PHONG') {
-                        return back()->with('error', 'Phải duyệt cấp phòng trước.');
-                    }
-                    break;
-                case 'DA_GUI':
-                    if (!$user->coQuyen('gui_chung_tu')) {
-                        return back()->with('error', 'Bạn không có quyền gửi chứng từ.');
+                    if (!$user->coQuyen('duyet_lanh_dao') || $trangThaiHienTai !== 'DA_DUYET_CAP_PHONG') {
+                        return back()->with('error', 'Chỉ được duyệt lãnh đạo sau khi đã duyệt cấp phòng.');
                     }
                     break;
                 case 'KY_SO':
@@ -521,9 +520,9 @@ class ChungTuController extends Controller
                         return back()->with('error', 'Bạn không có quyền ký số.');
                     }
                     break;
-                case 'DA_LUU_TRU':
-                    if (!$user->coQuyen('luu_tru_chung_tu')) {
-                        return back()->with('error', 'Bạn không có quyền lưu trữ.');
+                case 'DA_GUI':
+                    if (!$user->coQuyen('gui_chung_tu')) {
+                        return back()->with('error', 'Bạn không có quyền gửi chứng từ.');
                     }
                     break;
             }
@@ -538,61 +537,176 @@ class ChungTuController extends Controller
                 'id_trang_thai_moi' => $nextXuLy->id_den_trang_thai,
                 'ghi_chu' => $request->input('ghi_chu') ?? "Đã thực hiện bước: {$nextXuLy->mo_ta}",
             ]);
-
-            $chungTu->load('nguoiTao.vaiTro');
-
-            // ===== Gửi email cho người xử lý bước tiếp theo =====
             $this->guiMailNguoiXuLyTiepTheo($chungTu);
-            
+            // 🔥 Gửi email cho người xử lý bước kế tiếp
 
             return back()->with('success', "✅ Đã chuyển bước: {$nextXuLy->mo_ta}");
         }
 
+
+
         return back()->with('error', 'Không có hành động nào được chọn.');
     }
+
+
     protected function guiMailNguoiXuLyTiepTheo(ChungTu $chungTu)
     {
         try {
-            $trangThai = $chungTu->trangThai->ma_trang_thai ?? null;
-            $userTao = $chungTu->nguoiTao;
+            // Load lại quan hệ để chắc chắn có nguoiTao và trangThai
+            $chungTu->load(['nguoiTao', 'trangThai']);
+
+            $trangThaiKeTiep = $chungTu->trangThai->ma_trang_thai ?? null;
             $nguoiNhansQuery = User::query();
 
-          
-    
-            if ($trangThai === 'TAO_MOI') {
-                // Gửi cho trưởng phòng/phó phòng phòng ban của người tạo
-                $nguoiNhansQuery->whereHas('vaiTro', fn($q) =>
-                    $q->whereIn('ma_vai_tro', ['truongphong', 'pho_phong'])
-                )->where('id_phongban', $userTao->id_phongban);
-            } elseif ($trangThai === 'DA_DUYET_CAP_PHONG') {
-                // Gửi cho lãnh đạo
-                $nguoiNhansQuery->whereHas('vaiTro', fn($q) =>
-                    $q->whereIn('ma_vai_tro', ['giamdoc', 'pho_giamdoc'])
-                );
-            } elseif ($trangThai === 'DA_DUYET') {
-                // Gửi cho người ký số (giám đốc)
-                $nguoiNhansQuery->whereHas('vaiTro', fn($q) =>
-                    $q->where('ma_vai_tro', 'giamdoc')
-                );
-            } elseif ($trangThai === 'KY_SO') {
-                // Sau khi ký, gửi cho người gửi chứng từ đi
-                $nguoiNhansQuery->where('id', $userTao->id);
-            } else {
-                return; // Không gửi mail nếu không đúng trạng thái cần gửi
+            switch ($trangThaiKeTiep) {
+                case 'TAO_MOI':
+                    // Gửi cho trưởng phòng/phó phòng phòng ban người tạo
+                    $idPhongBanNguoiTao = $chungTu->nguoiTao->id_phongban ?? null;
+                    if ($idPhongBanNguoiTao) {
+                        $nguoiNhansQuery->whereHas('vaiTro', function ($q) {
+                            $q->whereIn('ma_vai_tro', ['truongphong', 'pho_phong']);
+                        })->where('id_phongban', $idPhongBanNguoiTao);
+                    } else {
+                        \Log::warning('Không xác định được phòng ban người tạo chứng từ.');
+                    }
+                    break;
+
+                case 'DA_DUYET_CAP_PHONG':
+                    // Gửi cho giám đốc/phó giám đốc
+                    $nguoiNhansQuery->whereHas('vaiTro', function ($q) {
+                        $q->whereIn('ma_vai_tro', ['giamdoc', 'pho_giamdoc']);
+                    });
+                    break;
+
+                case 'DA_DUYET':
+                    // Gửi cho người có quyền ký số
+                    $nguoiNhansQuery->whereHas('vaiTro', function ($q) {
+                        $q->where('ma_vai_tro', 'giamdoc');
+                    })->whereHas('quyenHan', function ($q) {
+                        $q->where('ma_quyen', 'ky_so');
+                    });
+                    break;
+
+             
+                case "DA_BAN_HANH":
+                    // Gửi cho người có quyền ban hành chứng từ
+                    $nguoiNhansQuery->whereHas('quyenHan', function ($q) {
+                        $q->where('ma_quyen', 'ban_hanh_chung_tu');
+                    });
+                    break;
+                
+                case 'KY_SO':
+                    // Gửi cho người có quyền gửi chứng từ
+                    $nguoiNhansQuery->whereHas('quyenHan', function ($q) {
+                        $q->where('ma_quyen', 'gui_chung_tu');
+                    });
+                    break;
+
+                case 'DA_GUI':
+                    // Gửi cho người có quyền lưu trữ
+                    $nguoiNhansQuery->whereHas('quyenHan', function ($q) {
+                        $q->where('ma_quyen', 'luu_tru_chung_tu');
+                    });
+                    break;
+
+                default:
+                    \Log::info("Không xác định người nhận cho trạng thái kế tiếp: $trangThaiKeTiep");
+                    return; // Không gửi mail nếu trạng thái không đúng
             }
-    
+
             $nguoiNhans = $nguoiNhansQuery->get();
-    
-            foreach ($nguoiNhans as $nguoiNhan) {
-                if ($nguoiNhan->email) {
-                    \Mail::to($nguoiNhan->email)->send(new \App\Mail\ThongBaoXuLyChungTu($chungTu, $nguoiNhan));
+
+            if ($nguoiNhans->isEmpty()) {
+                \Log::warning("Không tìm thấy người nhận phù hợp cho trạng thái: $trangThaiKeTiep");
+            } else {
+
+                // $emails = [];
+
+                // foreach ($nguoiNhans as $nguoiNhan) {
+                //     if ($nguoiNhan->email) {
+                //         $emails[] = $nguoiNhan->email;
+                //     }
+                // }
+
+                // // Hiển thị danh sách email và dừng chương trình
+                // dd($emails);
+
+                foreach ($nguoiNhans as $nguoiNhan) {
+                    if ($nguoiNhan->email) {
+                        \Mail::to($nguoiNhan->email)->send(new \App\Mail\ThongBaoXuLyChungTu($chungTu, $nguoiNhan));
+                    }
                 }
             }
+
         } catch (\Exception $e) {
             \Log::error('Lỗi gửi mail chứng từ: ' . $e->getMessage());
         }
     }
-    
+
+
+
+
+    protected function guiMailThongBaoTuChoi(ChungTu $chungTu)
+    {
+        try {
+            $nguoiTuChoi = auth()->user();
+            $nguoiTao = $chungTu->nguoiTao;
+            $emails = [];
+
+            if (in_array($nguoiTuChoi->vaiTro->ma_vai_tro, ['truongphong', 'pho_phong'])) {
+                // Trưởng phòng từ chối: gửi cho người tạo
+                $emails[] = $nguoiTao->email;
+            } elseif (in_array($nguoiTuChoi->vaiTro->ma_vai_tro, ['giamdoc', 'pho_giamdoc'])) {
+                // Giám đốc từ chối: gửi cho người tạo + trưởng phòng
+                $emails[] = $nguoiTao->email;
+
+                $quanLyPhong = User::where('id_phongban', $nguoiTao->id_phongban)
+                    ->whereHas('vaiTro', function ($q) {
+                        $q->whereIn('ma_vai_tro', ['truongphong', 'pho_phong']);
+                    })->pluck('email')->toArray();
+
+                $emails = array_merge($emails, $quanLyPhong);
+            }
+
+            foreach (array_unique($emails) as $email) {
+                if ($email) {
+                    Mail::to($email)->send(new \App\Mail\ThongBaoXuLyChungTu($chungTu, 'bi_tu_choi', $nguoiTuChoi));
+                }
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi mail từ chối chứng từ: ' . $e->getMessage());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

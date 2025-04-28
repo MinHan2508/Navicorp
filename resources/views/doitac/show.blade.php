@@ -16,7 +16,8 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-light">
-            <h4 class="text-primary mb-0"> Tên đối tác: {{ $doiTac->ten_doi_tac }}</h4>
+            <h4>Tên đối tác: </h4>
+            <h4 class="text-primary mb-0"> {{ $doiTac->ten_doi_tac }}</h4>
         </div>
         <div class="card-body">
             <div class="row mb-3">
