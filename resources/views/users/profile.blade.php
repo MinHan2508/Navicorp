@@ -13,7 +13,7 @@
                     @else
                         <div class="text-muted">Cập nhật ảnh</div>
                     @endif
-                    <h2 class="mt-3">{{ $user->name }}</h2>
+                    <h2 class="mt-3 text-center">{{ $user->name }}</h2>
                     <h5 class="text-muted">{{ optional($user->vaiTro)->ten_vai_tro ?? 'Không rõ vai trò' }}</h5>
                     @if($user->phongBan)
                         <h6 class="text-muted">{{ $user->phongBan->ten_phong_ban }}</h6>
