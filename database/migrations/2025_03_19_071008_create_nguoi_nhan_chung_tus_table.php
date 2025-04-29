@@ -40,6 +40,7 @@ return new class extends Migration
             $table->text('ghi_chu')->nullable();
 
             $table->timestamps();
+            
         });
     }
 

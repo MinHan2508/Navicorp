@@ -1,4 +1,4 @@
-<aside id="sidebar" class="sidebar">
+<aside id="sidebar" class="sidebar" style="height: calc(50vh - 60px); overflow-y: auto;">
     @php
         $user = auth()->user();
         $vaiTro = $user->vaiTro->ma_vai_tro ?? '';
@@ -12,28 +12,75 @@
             </a>
         </li>
 
-        <li class="nav-heading">Tạo mới</li>
+        @php
+            $user = auth()->user();
+        @endphp
 
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('chungtu.create.di') }}">
-                <i class="bi bi-box-arrow-up-right text-primary"></i><span>Chứng từ đi</span>
-            </a>
-        </li>
+        @php
+            $user = auth()->user();
+            $vaiTro = $user?->vaiTro?->ma_vai_tro ?? '';
+        @endphp
 
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('chungtu.create.noi_bo') }}">
-                <i class="bi bi-arrow-repeat text-success"></i><span>Chứng từ nội bộ</span>
-            </a>
-        </li>
+        <!-- DANH SÁCH HỨNG TỪ -->
+        <li class="nav-heading mt-3 text-uppercase fw-bold text-primary fs-6">📄DANH SÁCH CHỨNG TỪ</li>
 
-        @if($user?->coQuyen('tiep_nhan_chung_tu'))
+        <ul class="nav-content list-unstyled ms-3">
+            {{-- Chứng từ đi --}}
+            @if($vaiTro === 'admin' || $user?->coQuyen('xem_chung_tu_di'))
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('chungtu.index.di') }}">
+                        <i class="bi bi-send-arrow-up text-primary"></i><span>Chứng từ đi</span>
+                    </a>
+                </li>
+            @endif
+
+            {{-- Chứng từ nội bộ --}}
+            @if($vaiTro === 'admin' || $user?->coQuyen('xem_chung_tu_noi_bo'))
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('chungtu.index.noi_bo') }}">
+                        <i class="bi bi-arrow-repeat text-success"></i><span>Chứng từ nội bộ</span>
+                    </a>
+                </li>
+            @endif
+
+            {{-- Chứng từ đến --}}
+            @if($vaiTro === 'admin' || $user?->coQuyen('xem_chung_tu_den'))
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('chungtu.index.den') }}">
+                        <i class="bi bi-box-arrow-down-left text-danger"></i><span>Chứng từ đến</span>
+                    </a>
+                </li>
+            @endif
+        </ul>
+
+
+        <!-- kết thúc hiển thị danh sách chứng từ -->
+        <li class="nav-heading mt-3 text-uppercase fw-bold text-primary fs-6">➕TẠO MỚI</li>
+
+
+        <ul class="nav-content list-unstyled ms-3">
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('chungtu.create.den') }}">
-                    <i class="bi bi-box-arrow-down-left text-danger"></i><span>Chứng từ đến</span>
+                <a class="nav-link" href="{{ route('chungtu.create.di') }}">
+                    <i class="bi bi-box-arrow-up-right text-primary"></i><span>Chứng từ đi</span>
                 </a>
             </li>
-        @endif
 
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('chungtu.create.noi_bo') }}">
+                    <i class="bi bi-arrow-repeat text-success"></i><span>Chứng từ nội bộ</span>
+                </a>
+            </li>
+
+            @if($user?->coQuyen('tiep_nhan_chung_tu'))
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('chungtu.create.den') }}">
+                        <i class="bi bi-box-arrow-down-left text-danger"></i><span>Chứng từ đến</span>
+                    </a>
+                </li>
+            @endif
+        </ul>
+
+        <!-- NHÂN SỰ -->
         @if(in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc', 'truongphong', 'pho_phong']))
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('users.index') }}">
@@ -41,6 +88,7 @@
                 </a>
             </li>
         @endif
+        <!-- END NHÂN SỰ -->
 
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#mydoc-nav">
@@ -48,63 +96,78 @@
             </a>
             <ul id="mydoc-nav" class="nav-content collapse list-unstyled" style="padding-left: 20px;">
 
+                {{-- Khởi tạo / Tiếp nhận --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'tao_moi']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'tao_moi']) }}" class="text-primary fw-semibold">
                         <i class="bi bi-pencil-square me-2"></i> Khởi tạo / Tiếp nhận
                     </a>
                 </li>
 
+                {{-- Chờ trưởng phòng --}}
                 @if(in_array($vaiTro, ['truongphong', 'pho_phong', 'admin']))
                     <li>
-                        <a href="{{ route('chungtu.index', ['filter' => 'cho_truong_phong']) }}">
-                            <i class="bi bi-person-badge me-2"></i> Chờ trưởng phòng
+                        <a href="{{ route('chungtu.index', ['filter' => 'cho_truong_phong']) }}"
+                            class="text-warning fw-semibold">
+                            <i class="bi bi-person-badge me-2"></i> Chờ phòng duyệt
                         </a>
                     </li>
                 @endif
 
+                {{-- Chờ lãnh đạo --}}
                 @if(in_array($vaiTro, ['giamdoc', 'pho_giamdoc', 'admin']))
                     <li>
-                        <a href="{{ route('chungtu.index', ['filter' => 'cho_lanh_dao']) }}">
-                            <i class="bi bi-person-check me-2"></i> Chờ lãnh đạo
+                        <a href="{{ route('chungtu.index', ['filter' => 'cho_lanh_dao']) }}"
+                            class="text-warning fw-semibold">
+                            <i class="bi bi-person-check me-2"></i> Chờ lãnh đạo duyệt
                         </a>
                     </li>
                 @endif
 
+                {{-- Đã duyệt --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'da_duyet']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'da_duyet']) }}" class="text-success fw-semibold">
                         <i class="bi bi-check-circle me-2"></i> Đã duyệt
                     </a>
                 </li>
 
+                {{-- Chờ ký số --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'cho_ky_so']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'cho_ky_so']) }}" class="text-primary fw-semibold">
                         <i class="bi bi-pen me-2"></i> Chờ ký số
                     </a>
                 </li>
 
+                {{-- Đã ký số --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'da_ky_so']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'da_ky_so']) }}" class="text-success fw-semibold">
                         <i class="bi bi-shield-check me-2"></i> Đã ký số
                     </a>
                 </li>
 
+                {{-- Chờ gửi đi --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'cho_gui']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'cho_gui']) }}" class="text-info fw-semibold">
                         <i class="bi bi-send me-2"></i> Chờ gửi đi
                     </a>
                 </li>
 
+                {{-- Đã gửi đi --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'da_gui_di']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'da_gui_di']) }}" class="text-info fw-semibold">
                         <i class="bi bi-envelope-paper me-2"></i> Đã gửi đi
                     </a>
                 </li>
 
+                {{-- Đã từ chối --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'tu_choi']) }}">
+                    <a href="{{ route('chungtu.index', ['filter' => 'tu_choi']) }}" class="text-danger fw-semibold">
                         <i class="bi bi-x-circle me-2"></i> Đã từ chối
                     </a>
                 </li>
+
+
+
+
             </ul>
 
         </li>

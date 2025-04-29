@@ -21,6 +21,8 @@ class ChungTuController extends Controller
         $vaiTro = $user->vaiTro->ma_vai_tro ?? '';
         $idPhongBan = $user->id_phongban;
 
+
+
         $query = ChungTu::with(['loaiChungTu', 'nguoiTao.phongBan', 'nguoiGuiDoiTac', 'trangThai', 'huong']);
 
         // Lọc theo trạng thái theo tab động
@@ -116,7 +118,12 @@ class ChungTuController extends Controller
                     break;
             }
         }
-
+        // ✅ Lọc theo Hướng chứng từ
+        if ($request->filled('huong')) {
+            $query->whereHas('huong', function ($q) use ($request) {
+                $q->where('ten_huong_chung_tu', 'like', '%' . $request->huong . '%');
+            });
+        }
 
         // Lọc theo Mã chứng từ
         if ($request->filled('ma_chung_tu')) {
@@ -147,8 +154,13 @@ class ChungTuController extends Controller
 
         // ✅ Người tạo
         if ($request->filled('id_nguoi_tao')) {
-            $query->where('id_nguoi_tao', $request->id_nguoi_tao);
+            $keyword = $request->id_nguoi_tao;
+            $query->whereHas('nguoiTao', function ($q) use ($keyword) {
+                $q->where('name', 'like', '%' . $keyword . '%')
+                    ->orWhere('email', 'like', '%' . $keyword . '%');
+            });
         }
+
 
         // ✅ Phòng ban
         if ($request->filled('id_phong_ban')) {
@@ -161,17 +173,29 @@ class ChungTuController extends Controller
         if ($request->filled('tu_ngay')) {
             $query->whereDate('created_at', '>=', $request->tu_ngay);
         }
+
         if ($request->filled('den_ngay')) {
             $query->whereDate('created_at', '<=', $request->den_ngay);
         }
 
-        $chungTus = $query->orderByDesc('created_at')->get();
+
+
+        // $chungTus = $query->orderByDesc('created_at')->get();
+
+        // Cuối cùng:
+        $perPage = $request->input('per_page', 10); // mặc định 10
+        $chungTus = $query->orderByDesc('created_at')->paginate($perPage)->withQueryString();
+
+        $loaiChungTus = LoaiChungTu::all();
+        $huongChungTus = HuongChungTu::all();
+
         $nguoiTaos = User::all();
         $trangThais = TrangThaiChungTu::all();
         $phongBans = PhongBan::all();
+        $loaiChungTus = LoaiChungTu::all(); // lấy danh sách loại chứng từ
 
-        $chungTus = $query->get();
-        return view('chungtu.index', compact('chungTus', 'nguoiTaos', 'trangThais', 'phongBans'));
+
+        return view('chungtu.index', compact('chungTus', 'nguoiTaos', 'trangThais', 'phongBans', 'loaiChungTus', 'huongChungTus'));
 
 
         // Nếu không phải admin/giamdoc/pho_giamdoc => lọc theo quyền người dùng
@@ -180,7 +204,122 @@ class ChungTuController extends Controller
 
 
     }
+    public function indexDi(Request $request)
+    {
+        $user = auth()->user();
+        $query = ChungTu::with(['loaiChungTu', 'trangThai', 'huong', 'nguoiTao.phongBan', 'nguoiGuiDoiTac'])
+            ->whereHas('huong', function ($q) {
+                $q->where('ma_huong_chung_tu', 'DI');
+            });
 
+        $this->applyFilters($request, $query);
+
+        $chungTus = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
+
+        return view('chungtu.index', [
+            'chungTus' => $chungTus,
+            'nguoiTaos' => User::all(),
+            'trangThais' => TrangThaiChungTu::all(),
+            'phongBans' => PhongBan::all(),
+            'loaiChungTus' => LoaiChungTu::all(),
+            'huongChungTus' => HuongChungTu::all(),
+        ]);
+    }
+
+    public function indexNoiBo(Request $request)
+    {
+        $user = auth()->user();
+        $query = ChungTu::with(['loaiChungTu', 'trangThai', 'huong', 'nguoiTao.phongBan', 'nguoiGuiDoiTac'])
+            ->whereHas('huong', function ($q) {
+                $q->where('ma_huong_chung_tu', 'NOI_BO');
+            });
+
+        $this->applyFilters($request, $query);
+
+        $chungTus = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
+
+        return view('chungtu.index', [
+            'chungTus' => $chungTus,
+            'nguoiTaos' => User::all(),
+            'trangThais' => TrangThaiChungTu::all(),
+            'phongBans' => PhongBan::all(),
+            'loaiChungTus' => LoaiChungTu::all(),
+            'huongChungTus' => HuongChungTu::all(),
+        ]);
+    }
+
+    public function indexDen(Request $request)
+    {
+        $user = auth()->user();
+        $query = ChungTu::with(['loaiChungTu', 'trangThai', 'huong', 'nguoiTao.phongBan', 'nguoiGuiDoiTac'])
+            ->whereHas('huong', function ($q) {
+                $q->where('ma_huong_chung_tu', 'DEN_LUU_TRU');
+            });
+
+        $this->applyFilters($request, $query);
+
+        $chungTus = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
+
+        return view('chungtu.index', [
+            'chungTus' => $chungTus,
+            'nguoiTaos' => User::all(),
+            'trangThais' => TrangThaiChungTu::all(),
+            'phongBans' => PhongBan::all(),
+            'loaiChungTus' => LoaiChungTu::all(),
+            'huongChungTus' => HuongChungTu::all(),
+        ]);
+    }
+    private function applyFilters(Request $request, &$query)
+    {
+        if ($request->filled('ma_chung_tu')) {
+            $query->where('ma_chung_tu', 'like', '%' . $request->ma_chung_tu . '%');
+        }
+
+        if ($request->filled('tieu_de')) {
+            $query->where('tieu_de', 'like', '%' . $request->tieu_de . '%');
+        }
+
+        if ($request->filled('so_hieu')) {
+            $query->where('so_hieu', 'like', '%' . $request->so_hieu . '%');
+        }
+
+        if ($request->filled('loai')) {
+            $query->whereHas('loaiChungTu', function ($q) use ($request) {
+                $q->where('ten_loai_chung_tu', 'like', '%' . $request->loai . '%');
+            });
+        }
+
+        if ($request->filled('huong')) {
+            $query->whereHas('huong', function ($q) use ($request) {
+                $q->where('ten_huong_chung_tu', 'like', '%' . $request->huong . '%');
+            });
+        }
+
+        if ($request->filled('id_trang_thai')) {
+            $query->where('id_trang_thai_hien_tai', $request->id_trang_thai);
+        }
+
+        if ($request->filled('id_nguoi_tao')) {
+            $query->whereHas('nguoiTao', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->id_nguoi_tao . '%')
+                    ->orWhere('email', 'like', '%' . $request->id_nguoi_tao . '%');
+            });
+        }
+
+        if ($request->filled('id_phong_ban')) {
+            $query->whereHas('nguoiTao', function ($q) use ($request) {
+                $q->where('id_phongban', $request->id_phong_ban);
+            });
+        }
+
+        if ($request->filled('tu_ngay')) {
+            $query->whereDate('created_at', '>=', $request->tu_ngay);
+        }
+
+        if ($request->filled('den_ngay')) {
+            $query->whereDate('created_at', '<=', $request->den_ngay);
+        }
+    }
 
 
     public function create()
@@ -587,14 +726,14 @@ class ChungTuController extends Controller
                     });
                     break;
 
-             
+
                 case "DA_BAN_HANH":
                     // Gửi cho người có quyền ban hành chứng từ
                     $nguoiNhansQuery->whereHas('quyenHan', function ($q) {
                         $q->where('ma_quyen', 'ban_hanh_chung_tu');
                     });
                     break;
-                
+
                 case 'KY_SO':
                     // Gửi cho người có quyền gửi chứng từ
                     $nguoiNhansQuery->whereHas('quyenHan', function ($q) {

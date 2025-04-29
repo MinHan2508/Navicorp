@@ -37,36 +37,7 @@
 
 <body class="bg-gradient-primary">
 
-    <div class="container">
-        <div class="form-box login">
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
-                <h1>Login</h1>
-                <div class="input-box">
-                    <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="Email">
-                    <i class='bx bxs-user'></i>
-                </div>
-                <div class="input-box">
-                    <input id="password" type="password" name="password" required placeholder="Password">
-                    <i class='bx bxs-lock-alt'></i>
-                </div>
-                <div class="forgot-link">
-                    <a href="{{ route('password.request') }}">Forgot Password?</a>
-                </div>
-                <button type="submit" class="btn">Login</button>
-                
-            </form>
-        </div>
-
-
-        <div class="toggle-box">
-            <div class="toggle-panel toggle-left">
-                <h1>Chào mừng đến với hệ thống quản lý chứng từ</h1>
-              
-            </div>
-
-        </div>
-    </div>
+@include('auth.login')
 
     <script src="{{ asset('js/auth.js') }}"></script>
 

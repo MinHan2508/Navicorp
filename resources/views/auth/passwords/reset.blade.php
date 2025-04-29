@@ -3,6 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
+        <h1> VUI LÒNG LIÊN HỆ QUẢN TRỊ VIÊN CỦA BẠN ĐỂ CẤP LẠI MẬT KHẨU</h1>
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">{{ __('Reset Password') }}</div>

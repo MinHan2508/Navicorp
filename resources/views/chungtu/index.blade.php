@@ -3,7 +3,11 @@
 @section('content')
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
+
+
             @php
+                $routeName = Route::currentRouteName();
+                $filter = request('filter');
                 $filterLabels = [
                     'tao_moi' => 'Đã Khởi Tạo',
                     'cho_truong_phong' => 'Chờ Trưởng phòng duyệt',
@@ -12,19 +16,31 @@
                     'cho_ky_so' => 'Chờ Ký số',
                     'da_ky_so' => 'Đã Ký số',
                     'cho_gui' => 'Chờ Gửi đi',
-                    'da_gui_di' => 'Đã Gửi đi',
+                    'da_gui' => 'Đã Gửi đi',
                     'tu_choi' => 'Bị Từ chối',
                 ];
 
-                $filter = request('filter');
+                // Xác định tiêu đề động
+                $title = '📄Tất Cả Chứng từ';
+                if ($routeName === 'chungtu.index.di') {
+                    $title = 'Chứng từ đi';
+                } elseif ($routeName === 'chungtu.index.noi_bo') {
+                    $title = 'Chứng từ nội bộ';
+                } elseif ($routeName === 'chungtu.index.den') {
+                    $title = 'Chứng từ đến';
+                }
             @endphp
-
-            <h2 class="text-primary">
-                📄 Danh sách tất cả Chứng từ
-                @if($filter && isset($filterLabels[$filter]))
-                    : <span class="fw-bold text-danger">{{ $filterLabels[$filter] }}</span>
-                @endif
+            <h2>
+                <span class="text-dark">DANH SÁCH:</span>
+                <span class="text-primary">
+                    {{ $title }}
+                    @if($filter && isset($filterLabels[$filter]))
+                        : <span class="fw-bold text-danger">{{ $filterLabels[$filter] }}</span>
+                    @endif
+                </span>
             </h2>
+
+
 
             <a href="{{ route('chungtu.create') }}" class="btn btn-success">➕ Tạo mới</a>
         </div>
@@ -34,6 +50,25 @@
         @else
 
             <form method="GET" class="row g-3 mb-4 border rounded p-3 shadow-sm bg-white">
+
+
+                @php
+                    $routeName = Route::currentRouteName();
+                    $anHuong = in_array($routeName, ['chungtu.index.di', 'chungtu.index.noi_bo', 'chungtu.index.den']);
+                @endphp
+
+                @if(!$anHuong)
+                    <div class="col-md-12">
+                        <select name="huong" class="form-select">
+                            <option value="">🔎 Chọn hướng chứng từ</option>
+                            @foreach($huongChungTus as $huong)
+                                <option value="{{ $huong->ten_huong_chung_tu }}" {{ request('huong') == $huong->ten_huong_chung_tu ? 'selected' : '' }}>
+                                    {{ $huong->ten_huong_chung_tu }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 {{-- Hàng 1: Mã, Tiêu đề, Số hiệu, Loại --}}
                 <div class="col-md-3">
@@ -48,11 +83,17 @@
                     <input type="text" name="so_hieu" value="{{ request('so_hieu') }}" class="form-control"
                         placeholder="🔎 Số hiệu">
                 </div>
-                <div class="col-md-3">
-                    <input type="text" name="loai" value="{{ request('loai') }}" class="form-control"
-                        placeholder="🔎 Loại chứng từ">
-                </div>
 
+                <div class="col-md-3">
+                    <select name="loai" class="form-select">
+                        <option value="">🔎 Chọn loại chứng từ</option>
+                        @foreach($loaiChungTus as $loai)
+                            <option value="{{ $loai->ten_loai_chung_tu }}" {{ request('loai') == $loai->ten_loai_chung_tu ? 'selected' : '' }}> {{ $loai->ten_loai_chung_tu }}
+
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 {{-- Hàng 2: Trạng thái, Người tạo, Phòng ban --}}
                 <div class="col-md-4">
                     <select name="id_trang_thai" class="form-select">
@@ -65,14 +106,9 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <select name="id_nguoi_tao" class="form-select">
-                        <option value="">-- Người tạo --</option>
-                        @foreach($nguoiTaos as $user)
-                            <option value="{{ $user->id }}" {{ request('id_nguoi_tao') == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }} ({{ $user->email }})
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text" name="id_nguoi_tao" class="form-control" placeholder="🔎 Người tạo (Tên hoặc Email)"
+                        value="{{ request('id_nguoi_tao') }}">
+
                 </div>
                 <div class="col-md-4">
                     <select name="id_phong_ban" class="form-select">
@@ -86,14 +122,18 @@
                 </div>
 
                 {{-- Hàng 3: Ngày --}}
-                <div class="col-md-6">
-                    <input type="date" name="tu_ngay" class="form-control" value="{{ request('tu_ngay') }}"
-                        placeholder="Từ ngày">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="tu_ngay" class="form-label mb-0">Từ ngày:</label>
+                    <input type="date" id="tu_ngay" name="tu_ngay" class="form-control w-auto"
+                        value="{{ request('tu_ngay') ? \Carbon\Carbon::parse(request('tu_ngay'))->format('Y-m-d') : '' }}">
+
+                    <label for="den_ngay" class="form-label mb-0 ms-3">Đến ngày:</label>
+                    <input type="date" id="den_ngay" name="den_ngay" class="form-control w-auto"
+                        value="{{ request('den_ngay') ? \Carbon\Carbon::parse(request('den_ngay'))->format('Y-m-d') : '' }}">
                 </div>
-                <div class="col-md-6">
-                    <input type="date" name="den_ngay" class="form-control" value="{{ request('den_ngay') }}"
-                        placeholder="Đến ngày">
-                </div>
+
+
+
 
                 {{-- Nút --}}
                 <div class="col-12 text-end mt-2">
@@ -109,6 +149,7 @@
                     <thead class="table-light text-center align-middle">
                         <tr>
                             <th style="width: 40px;">#</th>
+                            <th>Hướng</th>
                             <th>Mã</th>
                             <th>Tiêu đề</th>
                             <th>Số hiệu</th>
@@ -117,7 +158,7 @@
                             <th>Nơi ban hành</th>
                             <th>Ngày ban hành</th>
                             <th>Hiệu lực</th>
-                            <th>Hướng</th>
+
                             <th>Trạng thái</th>
                             <th>Người tạo</th>
                             <th>Phòng ban</th>
@@ -131,9 +172,11 @@
                         @foreach($chungTus as $chungTu)
                                         <tr>
                                             <td class="text-center">{{ $loop->iteration }}</td>
+                                            <td class="text-center">{{ $chungTu->huong->ten_huong_chung_tu ?? '-' }}</td>
                                             <td class="text-nowrap">{{ $chungTu->ma_chung_tu }}</td>
                                             <td class="text-truncate" style="max-width: 200px;" title="{{ $chungTu->tieu_de }}">
-                                                {{ $chungTu->tieu_de }}</td>
+                                                {{ $chungTu->tieu_de }}
+                                            </td>
                                             <td class="text-nowrap">{{ $chungTu->so_hieu ?? '-' }}</td>
                                             <td class="text-center">
                                                 <span class="badge bg-primary">{{ $chungTu->loaiChungTu->ten_loai_chung_tu ?? 'N/A' }}</span>
@@ -154,10 +197,25 @@
                                                     -
                                                 @endif
                                             </td>
-                                            <td class="text-center">{{ $chungTu->huong->ten_huong_chung_tu ?? '-' }}</td>
+
                                             <td class="text-center">
-                                                <span class="badge bg-warning text-dark">
-                                                    {{ $chungTu->trangThai->ten_trang_thai ?? 'N/A' }}
+                                                @php
+
+                                                    $maTrangThai = $chungTu->trangThai->ma_trang_thai ?? null;
+                                                    $badgeClass = match ($maTrangThai) {
+                                                        'TAO_MOI' => 'bg-primary text-white',
+                                                        'DA_DUYET_CAP_PHONG' => 'bg-warning text-dark',
+                                                        'DA_DUYET' => 'bg-success text-white',
+                                                        'KY_SO' => 'bg-primary text-white',
+                                                        'DA_KY_SO' => 'bg-success text-white',
+                                                        'DA_GUI' => 'bg-info text-white',
+                                                        'TU_CHOI' => 'bg-danger text-white',
+                                                        default => 'bg-secondary text-white',
+                                                    };
+                                                @endphp
+
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ $chungTu->trangThai->ten_trang_thai ?? 'Chưa xác định' }}
                                                 </span>
                                             </td>
                                             <td class="text-nowrap">
@@ -219,6 +277,35 @@
                         @endforeach
                     </tbody>
                 </table>
+
+                {{-- Hiển thị phân trang --}}
+                {{-- Hiển thị phân trang --}}
+                <div class="d-flex flex-wrap justify-content-between align-items-center mt-4">
+                    <div>
+                        {{-- Phân trang --}}
+                        {{ $chungTus->links() }}
+                    </div>
+
+                    <div class="d-flex align-items-center mt-2 mt-md-0">
+                        <form method="GET" id="form-per-page" class="d-flex align-items-center">
+                            {{-- Giữ lại các filter đang chọn --}}
+                            @foreach(request()->except('per_page', 'page') as $key => $value)
+                                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                            @endforeach
+
+                            <label for="per_page" class="me-2 fw-bold">Hiển thị:</label>
+                            <select name="per_page" id="per_page" class="form-select form-select-sm w-auto"
+                                onchange="document.getElementById('form-per-page').submit()">
+                                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 dòng / trang</option>
+                                <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20 dòng / trang</option>
+                                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 dòng / trang</option>
+                                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 dòng / trang</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+
             </div>
 
         @endif
