@@ -30,7 +30,7 @@ class ChungTu extends Model
         'id_nguoi_gui_doi_tac',
         'id_huong',
     ];
-    
+
 
     public function loaiChungTu()
     {
@@ -56,7 +56,10 @@ class ChungTu extends Model
     {
         return $this->belongsTo(\App\Models\HuongChungTu::class, 'id_huong');
     }
-
+    public function trangThaiDen()
+    {
+        return $this->belongsTo(TrangThaiChungTu::class, 'id_trang_thai_den');
+    }
     public function getFullStoragePathAttribute()
     {
         $maLoai = $this->loaiChungTu->ma_loai_chung_tu ?? 'khac';

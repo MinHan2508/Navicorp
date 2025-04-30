@@ -37,7 +37,10 @@ Route::get('/test-mail', function () {
 
     return '✅ Đã gửi thử mail! Kiểm tra hộp thư đi.';
 });
-
+ //tải file đính kèm đã mã hóa
+ Route::get('/chungtu/download-signed/{chungTu}', [ChungTuController::class, 'downloadSigned'])
+ ->name('chungtu.download.signed')
+ ->middleware('signed'); // Rất quan trọng: bắt buộc có chữ ký
 
 // Tất cả các route bắt buộc phải đăng nhập mới được dùng
 Route::middleware(['auth'])->group(function () {
@@ -52,6 +55,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/import-excel', [UserController::class, 'importExcel'])->name('users.importExcel');
+    Route::get('/users/import', [UserController::class, 'showExcelImportForm'])->name('users.excel');
 
     Route::put('/users/profile', [UserController::class, 'update'])->name('users.profile.update');
     Route::delete('/users/profile', [UserController::class, 'destroy'])->name('users.profile.delete');
@@ -64,13 +69,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/chungtu/tao-moi/noi-bo', [ChungTuController::class, 'createNoiBo'])->name('chungtu.create.noi_bo');
     Route::get('/chungtu/tiep-nhan/den', [ChungTuController::class, 'createDen'])->name('chungtu.create.den');
 
+
+   
+
+
     
 
 
     Route::prefix('nguoinhanchungtu')->group(function () {
         Route::get('create/{idChungTu}', [NguoiNhanChungTuController::class, 'create'])->name('nguoinhanchungtu.create');
         Route::post('store/{idChungTu}', [NguoiNhanChungTuController::class, 'store'])->name('nguoinhanchungtu.store');
+        Route::get('chung-tu/{id}/da-gui', [NguoiNhanChungTuController::class, 'showDaGui'])
+        ->name('nguoinhanchungtu.showDaGui');
     });
+   
 
 
     // Các route danh sách chứng từ theo hướng:

@@ -7,52 +7,53 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Hash, Storage};
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-
+use App\Imports\UserImport;
+use Maatwebsite\Excel\Facades\Excel;
 class UserController extends Controller
 {
     public function index(Request $request)
-{
-    $user = auth()->user();
-    $vaiTro = $user->vaiTro->ma_vai_tro ?? '';
-    $phongBanId = $user->id_phongban;
+    {
+        $user = auth()->user();
+        $vaiTro = $user->vaiTro->ma_vai_tro ?? '';
+        $phongBanId = $user->id_phongban;
 
-    $query = User::query()
-        ->with(['phongBan', 'vaiTro'])
-        ->where('id', '!=', 1) // ẩn super admin gốc
-        ->where('id', '!=', $user->id); // ẩn chính mình
+        $query = User::query()
+            ->with(['phongBan', 'vaiTro'])
+            ->where('id', '!=', 1) // ẩn super admin gốc
+            ->where('id', '!=', $user->id); // ẩn chính mình
 
-    // 🎯 Phân quyền
-    if (in_array($vaiTro, ['admin','giamdoc', 'pho_giamdoc'])) {
-        // ✅ toàn quyền xem
-    } elseif (in_array($vaiTro, ['truongphong', 'pho_phong']) && $phongBanId) {
-        $query->where('id_phongban', $phongBanId);
-    } else {
-        $query->where('id', $user->id); // người thường chỉ xem chính mình (đã bị ẩn ở trên)
+        // 🎯 Phân quyền
+        if (in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc'])) {
+            // ✅ toàn quyền xem
+        } elseif (in_array($vaiTro, ['truongphong', 'pho_phong']) && $phongBanId) {
+            $query->where('id_phongban', $phongBanId);
+        } else {
+            $query->where('id', $user->id); // người thường chỉ xem chính mình (đã bị ẩn ở trên)
+        }
+
+        // 🔍 Lọc nâng cao
+        if ($request->filled('ten')) {
+            $query->where('name', 'like', '%' . $request->ten . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+
+        if ($request->filled('id_vaitro')) {
+            $query->where('id_vaitro', $request->id_vaitro);
+        }
+
+        if ($request->filled('id_phongban')) {
+            $query->where('id_phongban', $request->id_phongban);
+        }
+
+        $users = $query->get();
+        $vaiTros = \App\Models\VaiTro::all();
+        $phongBans = \App\Models\PhongBan::all();
+
+        return view('users.index', compact('users', 'vaiTros', 'phongBans'));
     }
-
-    // 🔍 Lọc nâng cao
-    if ($request->filled('ten')) {
-        $query->where('name', 'like', '%' . $request->ten . '%');
-    }
-
-    if ($request->filled('email')) {
-        $query->where('email', 'like', '%' . $request->email . '%');
-    }
-
-    if ($request->filled('id_vaitro')) {
-        $query->where('id_vaitro', $request->id_vaitro);
-    }
-
-    if ($request->filled('id_phongban')) {
-        $query->where('id_phongban', $request->id_phongban);
-    }
-
-    $users = $query->get();
-    $vaiTros = \App\Models\VaiTro::all();
-    $phongBans = \App\Models\PhongBan::all();
-
-    return view('users.index', compact('users', 'vaiTros', 'phongBans'));
-}
 
 
     public function create()
@@ -194,7 +195,7 @@ class UserController extends Controller
             Storage::disk('local')->delete($user->anh);
         }
 
-     
+
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'Người dùng đã được xóa.');
@@ -208,5 +209,25 @@ class UserController extends Controller
 
         $user = Auth::user();
         return view('users.profile', compact('user'));
+    }
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+    
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\UserImport, $request->file('file'));
+    
+            return redirect()->route('users.index')->with('success', 'Import thành công.');
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Import lỗi: ' . $e->getMessage());
+        }
+    }
+    
+    public function showExcelImportForm()
+    {
+        return view('users.excel');
     }
 }

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ThongBaoXuLyChungTu;
 
 
+
 class ChungTuController extends Controller
 {
     public function index(Request $request)
@@ -449,27 +450,48 @@ class ChungTuController extends Controller
     {
         $chungTu = ChungTu::findOrFail($id);
 
-        // ⚠️ Cập nhật: load cả trangThaiDen, tuTrangThai và huong
+        //ddems so lượng addax gửi chứng từ
+        $daGuiSoLuong = \App\Models\NguoiNhanChungTu::where('id_chung_tu', $chungTu->id)->count();
+        // Quy trình xử lý dựa vào trạng thái hiện tại và hướng
         $quyTrinhXuLy = QuyTrinhXuLyChungTu::with(['denTrangThai', 'tuTrangThai', 'huong'])
             ->where('id_tu_trang_thai', $chungTu->id_trang_thai_hien_tai)
             ->where('id_huong', $chungTu->id_huong)
             ->orderBy('thu_tu')
             ->get();
 
+        // Lịch sử xử lý
         $lichSu = LichSuChungTu::with(['nguoiThayDoi', 'trangThaiMoi'])
             ->where('id_chung_tu', $chungTu->id)
             ->orderBy('created_at')
             ->get();
 
+        // Người dùng hiện tại và người tạo chứng từ
         $nguoiDung = auth()->user();
         $nguoiTao = $chungTu->nguoiTao;
 
+        // Kiểm tra người duyệt cấp phòng
         $duocDuyetCapPhong = (
             in_array($nguoiDung->vaiTro->ma_vai_tro, ['truongphong', 'pho_phong']) &&
             $nguoiDung->id_phongban === $nguoiTao->id_phongban
         );
 
-        return view('chungtu.show', compact('chungTu', 'quyTrinhXuLy', 'lichSu', 'duocDuyetCapPhong'));
+        // 🔥 Thêm dữ liệu cho modal gửi chứng từ
+        $users = \App\Models\User::all();
+        $phongBans = \App\Models\PhongBan::all();
+        $doiTacs = \App\Models\DoiTac::all();
+
+        return view('chungtu.show', compact(
+            'chungTu',
+            'quyTrinhXuLy',
+            'lichSu',
+            'duocDuyetCapPhong',
+            'nguoiDung',
+            'nguoiTao',
+            'users',
+            'phongBans',
+            'doiTacs',
+            'daGuiSoLuong',
+        ));
     }
 
 
@@ -660,9 +682,26 @@ class ChungTuController extends Controller
                     }
                     break;
                 case 'DA_GUI':
-                    if (!$user->coQuyen('gui_chung_tu')) {
-                        return back()->with('error', 'Bạn không có quyền gửi chứng từ.');
+                    if (!in_array($trangThaiKeTiep, ['DA_GUI', 'DA_BAN_HANH'])) {
+                        return back()->with('error', 'Trạng thái kế tiếp không cho phép gửi chứng từ.');
                     }
+
+                    if (!$user->coQuyen('gui_chung_tu') && $user->id !== $chungTu->id_nguoi_tao) {
+                        return back()->with('error', 'Bạn không có quyền gửi chứng từ này.');
+                    }
+
+                    break;
+
+
+                case 'DA_BAN_HANH':
+                    if (!in_array($trangThaiKeTiep, ['DA_GUI', 'DA_BAN_HANH'])) {
+                        return back()->with('error', 'Trạng thái kế tiếp không cho phép gửi chứng từ.');
+                    }
+
+                    if (!$user->coQuyen('gui_chung_tu') && $user->id !== $chungTu->id_nguoi_tao) {
+                        return back()->with('error', 'Bạn không có quyền gửi chứng từ này.');
+                    }
+
                     break;
             }
 
@@ -681,8 +720,6 @@ class ChungTuController extends Controller
 
             return back()->with('success', "✅ Đã chuyển bước: {$nextXuLy->mo_ta}");
         }
-
-
 
         return back()->with('error', 'Không có hành động nào được chọn.');
     }
@@ -822,7 +859,19 @@ class ChungTuController extends Controller
 
 
 
+    public function downloadSigned(ChungTu $chungTu)
+    {
+        // $filePath = $chungTu->duong_dan; // Ví dụ: 'chungtu/HCNS_CV/2025/04/file.pdf'
+        
+        $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
+        $updated = $chungTu->updated_at ?? now();
+        $filePath = "chungtu/{$maLoai}/{$updated->format('Y')}/{$updated->format('m')}/{$chungTu->duong_dan}";
+        if (!$filePath || !Storage::exists($filePath)) {
+            abort(404, '❌ File không tồn tại.');
+        }
 
+        return Storage::download($filePath, basename($filePath)); // Tự động mở tải
+    }
 
 
 

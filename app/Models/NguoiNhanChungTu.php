@@ -18,4 +18,24 @@ class NguoiNhanChungTu extends Model
         'thoi_gian_xem',
         'ghi_chu'
     ];
+    public function nguoiNhan()
+    {
+        return $this->belongsTo(User::class, 'id_nguoi_nhan');
+    }
+
+    public function phongBan()
+    {
+        return $this->belongsTo(PhongBan::class, 'id_phong_ban');
+    }
+
+    public function doiTac()
+    {
+        return $this->belongsTo(DoiTac::class, 'id_doi_tac');
+    }
+
+    public function chungTu()
+    {
+        return $this->belongsTo(ChungTu::class, 'id_chung_tu');
+    }
+    
 }
