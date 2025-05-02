@@ -184,6 +184,50 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 
+<script>
+
+function kiemTraKySo() {
+    const input = document.getElementById('duong_dan');
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("{{ route('kiemtra.handle') }}", {
+        method: "POST",
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: formData
+    }).then(res => res.json()).then(data => {
+        document.getElementById("thong-tin-ky-so").classList.remove("d-none");
+
+        const inputKySo = document.getElementById("input-ky-so");
+
+        if (data.success) {
+            // ✅ Đã ký
+            inputKySo.value = 1;
+
+            document.getElementById("thong-tin-ok").style.display = "block";
+            document.getElementById("thong-tin-fail").style.display = "none";
+
+            document.getElementById("dv-ky").innerText = data.data?.don_vi_ky ?? "Không rõ";
+            document.getElementById("tg-ky").innerText = data.data?.signing_time ?? "Không rõ";
+            document.getElementById("ct-ky").innerText = data.data?.subject ?? "Không có";
+        } else {
+            // ❌ Chưa ký
+            inputKySo.value = 0;
+
+            document.getElementById("thong-tin-ok").style.display = "none";
+            document.getElementById("thong-tin-fail").style.display = "block";
+            document.getElementById("msg-loi").innerText = data.msg;
+        }
+    }).catch(err => {
+        alert("Lỗi khi kiểm tra chữ ký số: " + err);
+    });
+}
+
+
+
 
 
 @endsection

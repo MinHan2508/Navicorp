@@ -372,7 +372,7 @@ class ChungTuController extends Controller
             'ma_chung_tu' => 'required|string|unique:chung_tus',
             'tieu_de' => 'required|string',
             'so_hieu' => 'nullable|string',
-            'duong_dan' => 'required|file|mimes:pdf,doc,docx,xlsx,xls|max:2048',
+            'duong_dan' => 'required|file|mimes:pdf,doc,docx,xlsx,xls,xml',
             'trich_yeu' => 'nullable|string',
             'noi_ban_hanh' => 'nullable|string',
             'ngay_ban_hanh' => 'nullable|date',
@@ -387,6 +387,7 @@ class ChungTuController extends Controller
 
         $validated['id_nguoi_tao'] = auth()->id();
         $validated['id_trang_thai_hien_tai'] = 1;
+        $ky_so = $request->ky_so ? true : false; // ⚠️ Nhớ ép kiểu boolean
 
         if ($request->hasFile('duong_dan')) {
             $file = $request->file('duong_dan');
@@ -514,7 +515,7 @@ class ChungTuController extends Controller
             'ngay_het_hieu_luc' => 'nullable|date',
             'ky_so' => 'nullable',
             'ghi_chu' => 'nullable|string',
-            'duong_dan' => 'nullable|file|mimes:pdf,doc,docx,xlsx,xls|max:2048',
+            'duong_dan' => 'required|file|mimes:pdf,doc,docx,xlsx,xls,xml',
             'id_loai_chung_tu' => 'required|exists:loai_chung_tus,id',
             'id_nguoi_tao' => 'nullable|exists:users,id',
             'id_nguoi_gui_doi_tac' => 'nullable|exists:doi_tacs,id',
@@ -862,7 +863,7 @@ class ChungTuController extends Controller
     public function downloadSigned(ChungTu $chungTu)
     {
         // $filePath = $chungTu->duong_dan; // Ví dụ: 'chungtu/HCNS_CV/2025/04/file.pdf'
-        
+
         $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
         $updated = $chungTu->updated_at ?? now();
         $filePath = "chungtu/{$maLoai}/{$updated->format('Y')}/{$updated->format('m')}/{$chungTu->duong_dan}";
@@ -878,8 +879,76 @@ class ChungTuController extends Controller
 
 
 
+    public function capNhatFileKySo(Request $request, $id)
+    {
+        $request->validate([
+            'file_ky_so' => 'required|file|mimes:pdf,xml,docx,xlsx|max:20480'
+        ]);
 
+        $chungTu = ChungTu::findOrFail($id);
+        $file = $request->file('file_ky_so');
 
+        $now = now();
+        $maLoai = $chungTu->loaiChungTu->ma_loai_chung_tu ?? 'khac';
+        $folderPath = "chungtu/{$maLoai}/{$now->year}/{$now->format('m')}";
+
+        $oldPath = "{$folderPath}/{$chungTu->duong_dan}";
+        if ($chungTu->duong_dan && Storage::disk('local')->exists($oldPath)) {
+            Storage::disk('local')->delete($oldPath);
+        }
+
+        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file->storeAs($folderPath, $fileName, 'local');
+        $absPath = storage_path("app/{$folderPath}/{$fileName}");
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        $kySo = false;
+        $donVi = null;
+        $subject = null;
+        $signTime = null;
+
+        if ($ext === 'xml') {
+            $xml = simplexml_load_file($absPath);
+            if ($xml) {
+                $xml->registerXPathNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
+                $sig = $xml->xpath('//ds:Signature');
+                $kySo = !empty($sig);
+                $subject = (string) ($xml->xpath('//ds:X509SubjectName')[0] ?? '');
+                preg_match('/CN=([^,]+)/u', $subject, $matches);
+                $donVi = $matches[1] ?? null;
+                $signTime = (string) ($xml->xpath('//ds:SigningTime')[0] ?? '');
+            }
+        } elseif ($ext === 'pdf') {
+            $output = shell_exec("pdfsig \"$absPath\" 2>&1");
+            if (str_contains($output, 'Signature is VALID')) {
+                $kySo = true;
+                preg_match('/Common Name: (.+)/', $output, $cn);
+                preg_match('/Signing time: (.+)/', $output, $time);
+                $donVi = $cn[1] ?? null;
+                $signTime = $time[1] ?? null;
+            }
+        } elseif ($ext === 'docx' || $ext === 'xlsx') {
+            $zip = new \ZipArchive;
+            if ($zip->open($absPath) === true) {
+                $kySo = $zip->locateName($ext === 'docx' ? 'word/signatures.xml' : 'xl/signatures/sig1.xml') !== false;
+                $zip->close();
+            }
+        }
+
+        $chungTu->update([
+            'duong_dan' => $fileName,
+            'ky_so' => $kySo
+        ]);
+
+        return redirect()->route('chungtu.show', $id)->with([
+            'success' => $kySo ? '✅ File đã ký số hợp lệ.' : '⚠️ File cập nhật nhưng không có chữ ký số.',
+            'thong_tin_ky_so' => [
+                'don_vi_ky' => $donVi,
+                'signing_time' => $signTime,
+                'subject' => $subject
+            ]
+        ]);
+    }
 
 
 

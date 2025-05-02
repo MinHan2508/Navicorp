@@ -17,10 +17,24 @@ use App\Http\Controllers\LichSuChungTuController;
 use App\Http\Controllers\QuyenHanController;
 use App\Http\Controllers\VaiTroQuyenHanController;
 use App\Http\Controllers\NguoiNhanChungTuController;
+use App\Http\Controllers\KySoController;
+
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+
+//KIỂM TRA CHỮ KÝ SỐ 
+
+Route::get('/kiemtra', function () {
+    return view('kiemtra');
+})->name('kiemtra.form');
+Route::post('/kiemtra-vanban', [KySoController::class, 'kiemTraVanBan'])->name('kiemtra.handle');
+
 
 // Hệ thống đăng nhập/đăng ký mặc định của Laravel
 Auth::routes();
@@ -69,6 +83,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/chungtu/tao-moi/noi-bo', [ChungTuController::class, 'createNoiBo'])->name('chungtu.create.noi_bo');
     Route::get('/chungtu/tiep-nhan/den', [ChungTuController::class, 'createDen'])->name('chungtu.create.den');
 
+
+    // caapj nhaatj chuwx ky so
+    Route::post('/chungtu/{id}/kyso', [ChungTuController::class, 'capNhatFileKySo'])->name('chungtu.capnhatFileKySo');
 
    
 

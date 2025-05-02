@@ -140,48 +140,62 @@
                 <div class="d-flex flex-wrap gap-2">
                     {{-- Hiển thị các bước xử lý --}}
                     @if(isset($quyTrinhXuLy) && $quyTrinhXuLy->count())
-                                @foreach ($quyTrinhXuLy as $buoc)
-                                            @php
-                                                $coTheXuLy = false;
-                                                $maTrangThaiDen = optional($buoc->denTrangThai)->ma_trang_thai ?? null;
+                        @foreach ($quyTrinhXuLy as $buoc)
+                            @php
+                                $coTheXuLy = false;
+                                $maTrangThaiDen = optional($buoc->denTrangThai)->ma_trang_thai ?? null;
 
-                                                switch ($maTrangThaiDen) {
-                                                    case 'DA_DUYET_CAP_PHONG':
-                                                        $coTheXuLy = $user->coQuyen('duyet_cap_phong') && $phongBanNguoiTao === $phongBanNguoiDung;
-                                                        break;
-                                                    case 'DA_DUYET':
-                                                        $coTheXuLy = $user->coQuyen('duyet_lanh_dao') && $trangThaiHienTai === 'DA_DUYET_CAP_PHONG';
-                                                        break;
-                                                    case 'DA_GUI':
-                                                        $coTheXuLy = ($user->coQuyen('gui_chung_tu') || $user->id === $chungTu->id_nguoi_tao)
-                                                            && $daGuiSoLuong > 0;
-                                                        break;
-                                                    case 'DA_BAN_HANH':
-                                                        $coTheXuLy = ($user->coQuyen('gui_chung_tu') || $user->id === $chungTu->id_nguoi_tao)
-                                                            && $daGuiSoLuong > 0;
-                                                        break;
-                                                    case 'DA_KY_SO':
-                                                        $coTheXuLy = $user->coQuyen('ky_so');
-                                                        break;
-                                                    case 'DA_LUU_TRU':
-                                                        $coTheXuLy = $user->coQuyen('tiep_nhan_chung_tu');
-                                                        break;
-                                                    default:
-                                                        $coTheXuLy = $user->coQuyen('duyet_khac');
-                                                }
-                                            @endphp
+                                switch ($maTrangThaiDen) {
+                                    case 'DA_DUYET_CAP_PHONG':
+                                        $coTheXuLy = $user->coQuyen('duyet_cap_phong') && $phongBanNguoiTao === $phongBanNguoiDung;
+                                        break;
+                                    case 'DA_DUYET':
+                                        $coTheXuLy = $user->coQuyen('duyet_lanh_dao') && $trangThaiHienTai === 'DA_DUYET_CAP_PHONG';
+                                        break;
+                                    case 'DA_GUI':
+                                        $coTheXuLy = ($user->coQuyen('gui_chung_tu') || $user->id === $chungTu->id_nguoi_tao)
+                                            && $daGuiSoLuong > 0;
+                                        break;
+                                    case 'DA_BAN_HANH':
+                                        $coTheXuLy = ($user->coQuyen('gui_chung_tu') || $user->id === $chungTu->id_nguoi_tao)
+                                            && $daGuiSoLuong > 0;
+                                        break;
+                                    case 'DA_KY_SO':
+                                        $coTheXuLy = $user->coQuyen('ky_so') && $trangThaiHienTai === 'DA_DUYET';
+                                        break;
+                                    case 'DA_LUU_TRU':
+                                        $coTheXuLy = $user->coQuyen('tiep_nhan_chung_tu');
+                                        break;
+                                    default:
+                                        $coTheXuLy = $user->coQuyen('duyet_khac');
+                                }
+                            @endphp
 
-                                            {{-- Hiển thị nút cho từng bước nếu người dùng có quyền --}}
-                                            @if ($coTheXuLy)
+                            {{-- Hiển thị nút cho từng bước nếu người dùng có quyền --}}
 
-                                                <div class="col-md-4 d-flex justify-content-center mb-2">
-                                                    <button type="button" class="btn btn-success"
-                                                        onclick="xacNhanDuyet({{ $buoc->thu_tu }}, '{{ $buoc->mo_ta }}')">
-                                                        ✅ {{ $buoc->mo_ta }}
-                                                    </button>
-                                                </div>
-                                            @endif
-                                @endforeach
+
+
+                            {{-- ✅ Cho xử lý nếu không phải DA_KY_SO hoặc đã ký --}}
+                            @if ($coTheXuLy && ($maTrangThaiDen !== 'DA_KY_SO' || $chungTu->ky_so))
+
+                                <div class="col-md-4 d-flex justify-content-center mb-2">
+                                    <button type="button" class="btn btn-success"
+                                        onclick="xacNhanDuyet({{ $buoc->thu_tu }}, '{{ $buoc->mo_ta }}')">
+                                        ✅ {{ $buoc->mo_ta }}
+                                    </button>
+                                </div>
+
+                                {{-- ✅ Nếu là bước DA_KY_SO và chưa ký số → hiện nút upload --}}
+                            @elseif ($coTheXuLy && $maTrangThaiDen === 'DA_KY_SO' && !$chungTu->ky_so)
+                                <div class="col-md-4 d-flex justify-content-center mb-2">
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalKySo">
+                                        ✍️ Tải lên file đã ký số
+                                    </button>
+                                </div>
+                            @endif
+
+
+                        @endforeach
                     @else
                         {{-- Hiển thị thông báo nếu không có bước xử lý --}}
                         <span class="text-muted">Không có bước xử lý kế tiếp.</span>
@@ -208,6 +222,17 @@
                     @endif
 
 
+                    @if (session('thong_tin_ky_so'))
+                        <div class="alert alert-success mt-3">
+                            <strong>🖋 Thông tin ký số:</strong>
+                            <ul class="mb-0 small">
+                                <li><strong>Đơn vị ký:</strong> {{ session('thong_tin_ky_so')['don_vi_ky'] ?? '-' }}</li>
+                                <li><strong>Thời gian ký:</strong> {{ session('thong_tin_ky_so')['signing_time'] ?? '-' }}</li>
+                                <li><strong>Chủ thể:</strong> {{ session('thong_tin_ky_so')['subject'] ?? '-' }}</li>
+                            </ul>
+                        </div>
+                    @endif
+
                     {{-- Hiển thị modal gửi chứng từ nếu có --}}
                     @php
                         $coBuocGuiChungTu = $quyTrinhXuLy->contains(function ($buoc) {
@@ -231,15 +256,13 @@
                             </button>
                         </div>
                     @endif
-                        @if(in_array($trangThaiHienTai, ['DA_GUI', 'DA_BAN_HANH']))
+
+                    @if(in_array($trangThaiHienTai, ['DA_GUI', 'DA_BAN_HANH']))
                         <a href="{{ route('nguoinhanchungtu.showDaGui', $chungTu->id) }}"
-                                class="btn btn-outline-info w-100 text-center" style="max-width: 300px">
-                                📋 Xem danh sách đã gửi
-                            </a>
-                            @endif
-                         
-
-
+                            class="btn btn-outline-info w-100 text-center" style="max-width: 300px">
+                            📋 Xem danh sách đã gửi
+                        </a>
+                    @endif
 
                 </div>
             </form>
@@ -259,3 +282,6 @@
     {{-- Bao gồm modal gửi chứng từ --}}
     @include('nguoinhanchungtu._modal_gui_chung_tu')
 @endsection
+
+
+@include('chungtu.partials._modal_ky_so')

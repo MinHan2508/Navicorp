@@ -12,9 +12,24 @@ class DoiTacController extends Controller
         return view('doitac.index', compact('doiTacs'));
     }
 
+
     public function create()
     {
-        return view('doitac.create');
+        $doiTacs = DoiTac::select([
+            'id',
+            'ten_doi_tac',
+            'email',
+            'sdt',
+            'dia_chi',
+            'ma_so_thue',
+            'nguoi_dai_dien',
+            'chuc_vu_dai_dien',
+            'website',
+            'fax',
+            'ghi_chu'
+        ])->get();
+
+        return view('chungtu.create', compact('doiTacs'));
     }
 
     public function store(Request $request)
@@ -35,7 +50,7 @@ class DoiTacController extends Controller
 
         DoiTac::create($validated);
 
-        
+
         return redirect()->route('doitac.index')->with('success', 'Đối tác đã được tạo thành công.');
     }
 
@@ -68,10 +83,10 @@ class DoiTacController extends Controller
     }
 
     public function show($id)
-{
-    $doiTac = DoiTac::findOrFail($id);
-    return view('doitac.show', compact('doiTac'));
-}
+    {
+        $doiTac = DoiTac::findOrFail($id);
+        return view('doitac.show', compact('doiTac'));
+    }
 
     public function destroy($id)
     {
