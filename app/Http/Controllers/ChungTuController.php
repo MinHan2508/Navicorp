@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\{Storage, Auth};
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ThongBaoXuLyChungTu;
-
+use Illuminate\Support\Facades\DB;
 
 
 class ChungTuController extends Controller
@@ -21,190 +21,226 @@ class ChungTuController extends Controller
         $user = auth()->user();
         $vaiTro = $user->vaiTro->ma_vai_tro ?? '';
         $idPhongBan = $user->id_phongban;
-
-
-
-        $query = ChungTu::with(['loaiChungTu', 'nguoiTao.phongBan', 'nguoiGuiDoiTac', 'trangThai', 'huong']);
-
-        // Lọc theo trạng thái theo tab động
+    
+        // Khởi tạo query cơ bản kèm eager loading
+        $query = ChungTu::with([
+            'loaiChungTu',
+            'nguoiTao.phongBan',
+            'nguoiGuiDoiTac',
+            'trangThai',
+            'huong',
+            'nguoiNhanChungTu'
+        ]);
+    
+        // Lấy ID các trạng thái dùng trong lọc
+        $idTaoMoi        = TrangThaiChungTu::where('ma_trang_thai', 'TAO_MOI')->value('id');
+        $idDuyetCapPhong = TrangThaiChungTu::where('ma_trang_thai', 'DA_DUYET_CAP_PHONG')->value('id');
+        $idDaDuyet       = TrangThaiChungTu::where('ma_trang_thai', 'DA_DUYET')->value('id');
+        $idKySo          = TrangThaiChungTu::where('ma_trang_thai', 'DA_KY_SO')->value('id');
+        $idDaGui         = TrangThaiChungTu::where('ma_trang_thai', 'DA_GUI')->value('id');
+        $idTuChoi        = TrangThaiChungTu::where('ma_trang_thai', 'TU_CHOI')->value('id');
+        $idDaBanHanh     = TrangThaiChungTu::where('ma_trang_thai', 'DA_BAN_HANH')->value('id');
+    
+        // Xử lý lọc theo tab (filter động)
         if ($request->has('filter')) {
-
             $filter = $request->filter;
-            $idTaoMoi = TrangThaiChungTu::where('ma_trang_thai', 'TAO_MOI')->value('id');
-            $idDuyetCapPhong = TrangThaiChungTu::where('ma_trang_thai', 'DA_DUYET_CAP_PHONG')->value('id');
-            $idDaDuyet = TrangThaiChungTu::where('ma_trang_thai', 'DA_DUYET')->value('id');
-            $idKySo = TrangThaiChungTu::where('ma_trang_thai', 'DA_KY_SO')->value('id');
-            $idDaGui = TrangThaiChungTu::where('ma_trang_thai', 'DA_GUI')->value('id');
-            $idTuChoi = TrangThaiChungTu::where('ma_trang_thai', 'TU_CHOI')->value('id');
-
-
-
-
+    
             switch ($filter) {
                 case 'tao_moi':
                     $query->where('id_trang_thai_hien_tai', $idTaoMoi)
-                        ->where('id_nguoi_tao', auth()->id());
+                          ->where('id_nguoi_tao', $user->id);
                     break;
-
+    
                 case 'cho_truong_phong':
                     if (in_array($vaiTro, ['truongphong', 'pho_phong'])) {
                         $query->where('id_trang_thai_hien_tai', $idTaoMoi)
-                            ->whereHas('nguoiTao', fn($q) => $q->where('id_phongban', $idPhongBan));
+                              ->whereHas('nguoiTao', fn($q) => $q->where('id_phongban', $idPhongBan));
                     } else {
-                        // Người không có quyền trưởng/phó phòng => không thấy gì
                         $query->whereRaw('1 = 0');
                     }
                     break;
-
+    
                 case 'cho_lanh_dao':
                     if (in_array($vaiTro, ['giamdoc', 'pho_giam_doc'])) {
                         $query->where('id_trang_thai_hien_tai', $idDuyetCapPhong);
                     } else {
-                        // Người không có vai trò lãnh đạo => không thấy gì
                         $query->whereRaw('1 = 0');
                     }
                     break;
-
-
-                case 'cho_ky_so':
-                    // Chỉ hiển thị nếu người dùng có quyền ký số
-                    $query->when(
-                        $user->coQuyen('ky_so'),
-                        fn($q) => $q->where('id_trang_thai_hien_tai', $idDaDuyet),
-                        fn($q) => $q->whereRaw('1 = 0') // Không có quyền => không thấy gì
-                    );
-                    break;
-
-
-
-
-
+    
                 case 'da_duyet':
                     if (in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc'])) {
                         $query->where('id_trang_thai_hien_tai', $idDaDuyet);
                     } else {
-                        // Các vai trò khác vẫn được xem chứng từ đã duyệt của mình/phòng mình
                         $query->where('id_trang_thai_hien_tai', $idDaDuyet)
-                            ->where(function ($q) use ($user, $idPhongBan, $vaiTro) {
-                                $q->where('id_nguoi_tao', $user->id);
-
-                                if (in_array($vaiTro, ['truongphong', 'pho_phong']) && $idPhongBan) {
-                                    $q->orWhereHas('nguoiTao', function ($subQ) use ($idPhongBan) {
-                                        $subQ->where('id_phongban', $idPhongBan);
-                                    });
-                                }
-                            });
+                              ->where(function ($q) use ($user, $idPhongBan, $vaiTro) {
+                                  $q->where('id_nguoi_tao', $user->id);
+                                  if (in_array($vaiTro, ['truongphong', 'pho_phong']) && $idPhongBan) {
+                                      $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
+                                  }
+                              });
                     }
                     break;
-
+    
+                case 'cho_ky_so':
+                    if ($user->coQuyen('ky_so')) {
+                        $query->where('id_trang_thai_hien_tai', $idDaDuyet)
+                              ->whereExists(function ($subQuery) {
+                                  $subQuery->select(DB::raw(1))
+                                           ->from('quy_trinh_xu_ly_chung_tu as qtxl')
+                                           ->join('trang_thai_chung_tus as ttt', 'qtxl.id_den_trang_thai', '=', 'ttt.id')
+                                           ->whereRaw('qtxl.id_tu_trang_thai = chung_tus.id_trang_thai_hien_tai')
+                                           ->whereRaw('qtxl.id_huong = chung_tus.id_huong')
+                                           ->where('ttt.ma_trang_thai', 'DA_KY_SO');
+                              });
+                    } else {
+                        $query->whereRaw('1 = 0');
+                    }
+                    break;
+    
+                case 'da_ky_so':
+                    $query->where('id_trang_thai_hien_tai', $idKySo)
+                          ->where(function ($q) use ($user, $idPhongBan, $vaiTro) {
+                              $q->where('id_nguoi_tao', $user->id)
+                                ->orWhereHas('nguoiNhanChungTu', fn($subQ) => $subQ->where('id_nguoi_nhan', $user->id));
+                              if (in_array($vaiTro, ['truongphong', 'pho_phong']) && $idPhongBan) {
+                                  $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
+                              }
+                              if (in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc'])) {
+                                  $q->orWhereRaw('1 = 1');
+                              }
+                          });
+                    break;
+    
+                case 'cho_gui_di':
+                    $query->where('id_trang_thai_hien_tai', $idKySo)
+                          ->whereExists(function ($subQuery) {
+                              $subQuery->select(DB::raw(1))
+                                       ->from('quy_trinh_xu_ly_chung_tu as qtxl')
+                                       ->join('trang_thai_chung_tus as ttt', 'qtxl.id_den_trang_thai', '=', 'ttt.id')
+                                       ->whereRaw('qtxl.id_tu_trang_thai = chung_tus.id_trang_thai_hien_tai')
+                                       ->whereRaw('qtxl.id_huong = chung_tus.id_huong')
+                                       ->where('ttt.ma_trang_thai', 'DA_GUI');
+                          })
+                          ->where(function ($q) use ($user) {
+                              $q->where('id_nguoi_tao', $user->id);
+                              if ($user->coQuyen('ky_so') || $user->coQuyen('gui_chung_tu')) {
+                                  $q->orWhereRaw('1 = 1');
+                              }
+                          });
+                    break;
+    
+                case 'da_gui':
+                    $query->where('id_trang_thai_hien_tai', $idDaGui)
+                          ->where(function ($q) use ($user, $vaiTro, $idPhongBan) {
+                              $q->where('id_nguoi_tao', $user->id)
+                                ->orWhereHas('nguoiNhanChungTu', fn($subQ) => $subQ->where('id_nguoi_nhan', $user->id));
+                              if (in_array($vaiTro, ['truongphong', 'pho_phong']) && $idPhongBan) {
+                                  $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
+                              }
+                              if (in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc'])) {
+                                  $q->orWhereRaw('1 = 1');
+                              }
+                          });
+                    break;
+    
+                case 'cho_ban_hanh':
+                    $query->where('id_trang_thai_hien_tai', $idKySo)
+                          ->whereExists(function ($subQuery) {
+                              $subQuery->select(DB::raw(1))
+                                       ->from('quy_trinh_xu_ly_chung_tu as qtxl')
+                                       ->join('trang_thai_chung_tus as ttt', 'qtxl.id_den_trang_thai', '=', 'ttt.id')
+                                       ->whereRaw('qtxl.id_tu_trang_thai = chung_tus.id_trang_thai_hien_tai')
+                                       ->whereRaw('qtxl.id_huong = chung_tus.id_huong')
+                                       ->where('ttt.ma_trang_thai', 'DA_BAN_HANH');
+                          });
+                    break;
+    
+                case 'da_ban_hanh':
+                    $query->where('id_trang_thai_hien_tai', $idDaBanHanh)
+                          ->where(function ($q) use ($user, $vaiTro, $idPhongBan) {
+                              $q->where('id_nguoi_tao', $user->id)
+                                ->orWhereHas('nguoiNhanChungTu', fn($subQ) => $subQ->where('id_nguoi_nhan', $user->id));
+                              if (in_array($vaiTro, ['truongphong', 'pho_phong']) && $idPhongBan) {
+                                  $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
+                              }
+                              if (in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc'])) {
+                                  $q->orWhereRaw('1 = 1');
+                              }
+                          });
+                    break;
+    
                 case 'tu_choi':
                     $query->where('id_trang_thai_hien_tai', $idTuChoi)
-                        ->where(function ($q) use ($user, $idPhongBan, $vaiTro) {
-                            $q->where('id_nguoi_tao', $user->id);
-
-                            if (in_array($vaiTro, ['truongphong', 'pho_phong'])) {
-                                // Trưởng/phó phòng xem chứng từ từ chối của phòng mình
-                                $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
-                            }
-
-                            if (in_array($vaiTro, ['pho_giam_doc', 'giamdoc'])) {
-                                // Giám đốc/phó giám đốc thấy tất cả chứng từ bị từ chối
-                                $q->orWhereRaw('1 = 1');
-                            }
-                        });
-                    break;
-
-                case 'da_gui':
-                    $query->where('id_trang_thai_hien_tai', $idDaGui);
+                          ->where(function ($q) use ($user, $idPhongBan, $vaiTro) {
+                              $q->where('id_nguoi_tao', $user->id);
+                              if (in_array($vaiTro, ['truongphong', 'pho_phong'])) {
+                                  $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
+                              }
+                              if (in_array($vaiTro, ['pho_giam_doc', 'giamdoc'])) {
+                                  $q->orWhereRaw('1 = 1');
+                              }
+                          });
                     break;
             }
         }
-        // ✅ Lọc theo Hướng chứng từ
+    
+        // Lọc nâng cao
         if ($request->filled('huong')) {
-            $query->whereHas('huong', function ($q) use ($request) {
-                $q->where('ten_huong_chung_tu', 'like', '%' . $request->huong . '%');
-            });
+            $query->whereHas('huong', fn($q) => $q->where('ten_huong_chung_tu', 'like', '%' . $request->huong . '%'));
         }
-
-        // Lọc theo Mã chứng từ
-        if ($request->filled('ma_chung_tu')) {
-            $query->where('ma_chung_tu', 'like', '%' . $request->ma_chung_tu . '%');
-        }
-
-        // Lọc theo Tiêu đề
-        if ($request->filled('tieu_de')) {
-            $query->where('tieu_de', 'like', '%' . $request->tieu_de . '%');
-        }
-
-        // Lọc theo Số hiệu
-        if ($request->filled('so_hieu')) {
-            $query->where('so_hieu', 'like', '%' . $request->so_hieu . '%');
-        }
-
-        // Lọc theo tên loại chứng từ
+        if ($request->filled('ma_chung_tu')) $query->where('ma_chung_tu', 'like', '%' . $request->ma_chung_tu . '%');
+        if ($request->filled('tieu_de')) $query->where('tieu_de', 'like', '%' . $request->tieu_de . '%');
+        if ($request->filled('so_hieu')) $query->where('so_hieu', 'like', '%' . $request->so_hieu . '%');
         if ($request->filled('loai')) {
-            $query->whereHas('loaiChungTu', function ($q) use ($request) {
-                $q->where('ten_loai_chung_tu', 'like', '%' . $request->loai . '%');
-            });
+            $query->whereHas('loaiChungTu', fn($q) => $q->where('ten_loai_chung_tu', 'like', '%' . $request->loai . '%'));
         }
-
-        // ✅ Trạng thái
-        if ($request->filled('id_trang_thai')) {
-            $query->where('id_trang_thai_hien_tai', $request->id_trang_thai);
-        }
-
-        // ✅ Người tạo
+        if ($request->filled('id_trang_thai')) $query->where('id_trang_thai_hien_tai', $request->id_trang_thai);
         if ($request->filled('id_nguoi_tao')) {
             $keyword = $request->id_nguoi_tao;
-            $query->whereHas('nguoiTao', function ($q) use ($keyword) {
-                $q->where('name', 'like', '%' . $keyword . '%')
-                    ->orWhere('email', 'like', '%' . $keyword . '%');
-            });
+            $query->whereHas('nguoiTao', fn($q) => $q->where('name', 'like', "%$keyword%")->orWhere('email', 'like', "%$keyword%"));
         }
-
-
-        // ✅ Phòng ban
         if ($request->filled('id_phong_ban')) {
-            $query->whereHas('nguoiTao', function ($q) use ($request) {
-                $q->where('id_phongban', $request->id_phong_ban);
+            $query->whereHas('nguoiTao', fn($q) => $q->where('id_phongban', $request->id_phong_ban));
+        }
+        if ($request->filled('tu_ngay')) $query->whereDate('created_at', '>=', $request->tu_ngay);
+        if ($request->filled('den_ngay')) $query->whereDate('created_at', '<=', $request->den_ngay);
+    
+        // Nếu không có filter hay tìm kiếm, phân quyền mặc định
+        $isFiltering = $request->has('filter') || $request->filled([
+            'ma_chung_tu', 'tieu_de', 'so_hieu', 'loai', 'id_trang_thai',
+            'id_nguoi_tao', 'id_phong_ban', 'tu_ngay', 'den_ngay', 'huong'
+        ]);
+    
+        if (!$isFiltering) {
+            $query->where(function ($q) use ($user, $idPhongBan, $vaiTro) {
+                $q->where('id_nguoi_tao', $user->id)
+                  ->orWhereHas('nguoiNhanChungTu', fn($subQ) => $subQ->where('id_nguoi_nhan', $user->id));
+                if (in_array($vaiTro, ['truongphong', 'pho_phong']) && $idPhongBan) {
+                    $q->orWhereHas('nguoiTao', fn($subQ) => $subQ->where('id_phongban', $idPhongBan));
+                }
+                if (in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc'])) {
+                    $q->orWhereRaw('1 = 1');
+                }
             });
         }
-
-        // ✅ Ngày tạo (từ - đến)
-        if ($request->filled('tu_ngay')) {
-            $query->whereDate('created_at', '>=', $request->tu_ngay);
-        }
-
-        if ($request->filled('den_ngay')) {
-            $query->whereDate('created_at', '<=', $request->den_ngay);
-        }
-
-
-
-        // $chungTus = $query->orderByDesc('created_at')->get();
-
-        // Cuối cùng:
-        $perPage = $request->input('per_page', 10); // mặc định 10
+    
+        // Phân trang
+        $perPage = $request->input('per_page', 10);
         $chungTus = $query->orderByDesc('created_at')->paginate($perPage)->withQueryString();
-
-        $loaiChungTus = LoaiChungTu::all();
-        $huongChungTus = HuongChungTu::all();
-
-        $nguoiTaos = User::all();
-        $trangThais = TrangThaiChungTu::all();
-        $phongBans = PhongBan::all();
-        $loaiChungTus = LoaiChungTu::all(); // lấy danh sách loại chứng từ
-
-
-        return view('chungtu.index', compact('chungTus', 'nguoiTaos', 'trangThais', 'phongBans', 'loaiChungTus', 'huongChungTus'));
-
-
-        // Nếu không phải admin/giamdoc/pho_giamdoc => lọc theo quyền người dùng
-
-
-
-
+    
+        // Dữ liệu hỗ trợ view
+        return view('chungtu.index', [
+            'chungTus' => $chungTus,
+            'loaiChungTus' => LoaiChungTu::all(),
+            'huongChungTus' => HuongChungTu::all(),
+            'nguoiTaos' => User::all(),
+            'trangThais' => TrangThaiChungTu::all(),
+            'phongBans' => PhongBan::all(),
+        ]);
     }
+    
+
     public function indexDi(Request $request)
     {
         $user = auth()->user();
@@ -613,8 +649,6 @@ class ChungTuController extends Controller
     }
 
 
-
-
     public function xuLyChungTu(Request $request, ChungTu $chungTu)
     {
         $user = auth()->user();
@@ -858,8 +892,6 @@ class ChungTuController extends Controller
 
 
 
-
-
     public function downloadSigned(ChungTu $chungTu)
     {
         // $filePath = $chungTu->duong_dan; // Ví dụ: 'chungtu/HCNS_CV/2025/04/file.pdf'
@@ -873,8 +905,6 @@ class ChungTuController extends Controller
 
         return Storage::download($filePath, basename($filePath)); // Tự động mở tải
     }
-
-
 
 
 
@@ -949,17 +979,6 @@ class ChungTuController extends Controller
             ]
         ]);
     }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

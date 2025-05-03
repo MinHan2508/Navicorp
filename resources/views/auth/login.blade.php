@@ -25,13 +25,31 @@
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <style>
         body {
-            background-image: url('{{ asset('img/background.png') }}');
+            background-image: url('{{ asset('img/admin/br_login.png') }}');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
             background-position: center center;
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            z-index: 2;
+            position: relative;
+        }
+
+        .form-box,
+        .toggle-box {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
     </style>
+
 
 </head>
 

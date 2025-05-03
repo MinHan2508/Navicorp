@@ -37,5 +37,6 @@ class NguoiNhanChungTu extends Model
     {
         return $this->belongsTo(ChungTu::class, 'id_chung_tu');
     }
+  
     
 }

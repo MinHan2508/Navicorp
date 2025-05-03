@@ -5,7 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Laravel') }}</title>
+
+    <link rel="shortcut icon" href="{{ asset('img/admin/lg_1.ico') }}">
+    <title>Navico</title>
 
     <!-- Fonts & CSS -->
 
@@ -17,9 +19,6 @@
 </head>
 
 <body>
-
-
-
 
     <div id="app" class="d-flex flex-column min-vh-100">
 
@@ -34,7 +33,7 @@
                         <i class="bi bi-list fs-4"></i>
                     </button>
                     <a href="{{ url('/') }}" class="logo d-flex align-items-center text-decoration-none">
-                        <img src="{{ asset('img/admin/logo_2.png') }}" alt="Logo" height="40">
+                        <img src="{{ asset('img/admin/lg_1.png') }}" alt="Logo" height="40">
                         <span class="ms-2 fs-5 fw-bold text-dark d-none d-lg-block">Navicorp</span>
                     </a>
                 </div>
@@ -101,9 +100,11 @@
                 main.classList.toggle('expanded');
             });
         });
+        
     </script>
 
     @stack('modals')
+
 </body>
 
 </html>

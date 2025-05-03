@@ -1,0 +1,9 @@
+/* Ẩn nút hành động mặc định */
+.chung-tu-actions {
+    display: none;
+}
+
+/* Khi hover vào dòng table, hiện nút hành động */
+tr:hover .chung-tu-actions {
+    display: inline-block;
+}

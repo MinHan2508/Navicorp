@@ -68,4 +68,9 @@ class ChungTu extends Model
         $month = Carbon::parse($updated)->format('m');
         return "storage/{$maLoai}/{$year}/{$month}/{$this->duong_dan}";
     }
+
+    public function nguoiNhanChungTu()
+    {
+        return $this->hasMany(\App\Models\NguoiNhanChungTu::class, 'id_chung_tu');
+    }
 }

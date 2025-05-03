@@ -26,31 +26,30 @@
 
         <ul class="nav-content list-unstyled ms-3">
             {{-- Chứng từ đi --}}
-            @if($vaiTro === 'admin' || $user?->coQuyen('xem_chung_tu_di'))
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('chungtu.index.di') }}">
-                        <i class="bi bi-send-arrow-up text-primary"></i><span>Chứng từ đi</span>
-                    </a>
-                </li>
-            @endif
+
+            <a class="nav-link" href="{{ route('chungtu.index.di') }}">
+                <i class="bi bi-send-arrow-up text-primary"></i><span>Chứng từ đi</span>
+            </a>
+            </li>
+
 
             {{-- Chứng từ nội bộ --}}
-            @if($vaiTro === 'admin' || $user?->coQuyen('xem_chung_tu_noi_bo'))
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('chungtu.index.noi_bo') }}">
-                        <i class="bi bi-arrow-repeat text-success"></i><span>Chứng từ nội bộ</span>
-                    </a>
-                </li>
-            @endif
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('chungtu.index.noi_bo') }}">
+                    <i class="bi bi-arrow-repeat text-success"></i><span>Chứng từ nội bộ</span>
+                </a>
+            </li>
+
 
             {{-- Chứng từ đến --}}
-            @if($vaiTro === 'admin' || $user?->coQuyen('xem_chung_tu_den'))
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('chungtu.index.den') }}">
-                        <i class="bi bi-box-arrow-down-left text-danger"></i><span>Chứng từ đến</span>
-                    </a>
-                </li>
-            @endif
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('chungtu.index.den') }}">
+                    <i class="bi bi-box-arrow-down-left text-danger"></i><span>Chứng từ đến</span>
+                </a>
+            </li>
+
         </ul>
 
 
@@ -88,7 +87,28 @@
                 </a>
             </li>
         @endif
+
+
+        <!-- Đối tác -->
+        @if(in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc', 'truongphong', 'pho_phong']))
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('doitac.index') }}">
+                    <i class="bi bi-people"></i><span>Nhân sự</span>
+                </a>
+            </li>
+        @endif
+
+
+
         <!-- END NHÂN SỰ -->
+        <!--  -->
+        <li>
+            <a class="nav-link" href="{{ route('chungtu.baocao') }}">
+                <i class="bi bi-graph-up-arrow me-2"></i> Thống kê chứng từ
+            </a>
+        </li>
+
+        <!--  -->
 
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#mydoc-nav">
@@ -146,17 +166,32 @@
 
                 {{-- Chờ gửi đi --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'cho_gui']) }}" class="text-info fw-semibold">
+                    <a href="{{ route('chungtu.index', ['filter' => 'cho_gui_di']) }}" class="text-info fw-semibold">
                         <i class="bi bi-send me-2"></i> Chờ gửi đi
                     </a>
                 </li>
 
                 {{-- Đã gửi đi --}}
                 <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'da_gui_di']) }}" class="text-info fw-semibold">
+                    <a href="{{ route('chungtu.index', ['filter' => 'da_gui']) }}" class="text-info fw-semibold">
                         <i class="bi bi-envelope-paper me-2"></i> Đã gửi đi
                     </a>
                 </li>
+
+
+                {{-- Chờ nhận --}}<li>
+                    <a href="{{ route('chungtu.index', ['filter' => 'cho_ban_hanh']) }}" class="text-purple fw-semibold">
+                        <i class="bi bi-send me-2"></i> Chờ Ban Hành
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('chungtu.index', ['filter' => 'da_ban_hanh']) }}" class="text-purple fw-semibold">
+                        <i class="bi bi-envelope-paper me-2"></i> Đã Ban Hành
+                    </a>
+                </li>
+
+
 
                 {{-- Đã từ chối --}}
                 <li>
@@ -164,6 +199,8 @@
                         <i class="bi bi-x-circle me-2"></i> Đã từ chối
                     </a>
                 </li>
+
+
 
 
 

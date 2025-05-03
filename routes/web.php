@@ -87,7 +87,9 @@ Route::middleware(['auth'])->group(function () {
     // caapj nhaatj chuwx ky so
     Route::post('/chungtu/{id}/kyso', [ChungTuController::class, 'capNhatFileKySo'])->name('chungtu.capnhatFileKySo');
 
-   
+   //BÁO CÁO CHỨNG TỪ
+   Route::get('/chungtu/bao-cao', [App\Http\Controllers\ThongKeChungTuController::class, 'index'])->name('chungtu.baocao');
+
 
 
     
