@@ -18,9 +18,19 @@ class LichSuChungTu extends Model
         'ghi_chu',
     ];
 
-        public function chungTu()
+    public function chungTu()
     {
         return $this->belongsTo(ChungTu::class, 'id_chung_tu');
+    }
+
+    public function trangThai()
+    {
+        return $this->belongsTo(TrangThaiChungTu::class, 'id_trang_thai');
+    }
+
+    public function nguoiXuLy()
+    {
+        return $this->belongsTo(User::class, 'id_nguoi_xu_ly');
     }
 
     public function nguoiThayDoi()
@@ -33,7 +43,7 @@ class LichSuChungTu extends Model
         return $this->belongsTo(TrangThaiChungTu::class, 'id_trang_thai_moi');
     }
 
-       
+
 
 
 }

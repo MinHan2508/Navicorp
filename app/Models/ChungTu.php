@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-
+use Vinkla\Hashids\Facades\Hashids;
 class ChungTu extends Model
 {
     use HasFactory;
@@ -72,5 +72,9 @@ class ChungTu extends Model
     public function nguoiNhanChungTu()
     {
         return $this->hasMany(\App\Models\NguoiNhanChungTu::class, 'id_chung_tu');
+    }
+    public function getHashidAttribute()
+    {
+        return Hashids::encode($this->id);
     }
 }

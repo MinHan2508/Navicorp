@@ -4,8 +4,14 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="text-primary">Danh sách Nhân sự</h1>
-            <a href="{{ route('users.create') }}" class="btn btn-success">+ Tạo người dùng mới</a>
-            <a href="{{ route('users.excel') }}" class="btn btn-success">+ Tạo Danh Sách người dùng mới excel</a>
+            @php
+                $user = auth()->user();
+            @endphp
+
+            @if($user->vaiTro->ma_vai_tro === 'admin')
+                <a href="{{ route('users.create') }}" class="btn btn-success">+ Tạo người dùng mới</a>
+                <a href="{{ route('users.excel') }}" class="btn btn-success">+ Tạo Danh Sách người dùng </a>
+            @endif
         </div>
 
 

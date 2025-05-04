@@ -5,9 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-info">Thông tin chi tiết Đối tác</h2>
         <div>
-            <a href="{{ route('doitac.edit', $doiTac->id) }}" class="btn btn-warning me-2">
-                ✏️ Chỉnh sửa
-            </a>
+            
             <a href="{{ route('doitac.index') }}" class="btn btn-secondary">
                 ← Quay lại danh sách
             </a>

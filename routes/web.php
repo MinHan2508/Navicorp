@@ -17,7 +17,9 @@ use App\Http\Controllers\LichSuChungTuController;
 use App\Http\Controllers\QuyenHanController;
 use App\Http\Controllers\VaiTroQuyenHanController;
 use App\Http\Controllers\NguoiNhanChungTuController;
+use App\Http\Controllers\ThongKeChungTuController;  
 use App\Http\Controllers\KySoController;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 
@@ -27,6 +29,20 @@ Route::get('/', function () {
 });
 
 
+Route::get('/bi-khoa', function (Illuminate\Http\Request $request) {
+    $lyDo = $request->get('ly_do', 'Tài khoản của bạn đã bị khóa.');
+    return view('auth.bikhoa', compact('lyDo'));
+})->name('user.biKhoa');
+
+
+Route::get('/chungtu/bao-cao', [ThongKeChungTuController::class, 'index'])
+    ->name('chungtu.baocao');
+
+
+    
+Route::get('/test-hashid', function () {
+    return \Vinkla\Hashids\Facades\Hashids::encode(52);
+});
 
 //KIỂM TRA CHỮ KÝ SỐ 
 
@@ -51,13 +67,18 @@ Route::get('/test-mail', function () {
 
     return '✅ Đã gửi thử mail! Kiểm tra hộp thư đi.';
 });
- //tải file đính kèm đã mã hóa
- Route::get('/chungtu/download-signed/{chungTu}', [ChungTuController::class, 'downloadSigned'])
- ->name('chungtu.download.signed')
- ->middleware('signed'); // Rất quan trọng: bắt buộc có chữ ký
+
+//tải file đính kèm đã mã hóa
+Route::get('/chungtu/download-signed/{chungTu}', [ChungTuController::class, 'downloadSigned'])
+    ->name('chungtu.download.signed')
+    ->middleware('signed'); // Rất quan trọng: bắt buộc có chữ ký
+
+
 
 // Tất cả các route bắt buộc phải đăng nhập mới được dùng
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'kiemtratrangthai'])->group(function () {
+
+    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
     // Upload
     Route::post('/upload', [UploadController::class, 'upload'])->name('upload');
@@ -79,35 +100,66 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profile/change-password', [UserController::class, 'changePassword'])->name('profile.change-password');
 
+
+
+
+    // Chứng từ (tách thủ công để loại bỏ show)
+    Route::get('/chungtu', [ChungTuController::class, 'index'])->name('chungtu.index');
+    Route::get('/chungtu/create', [ChungTuController::class, 'create'])->name('chungtu.create');
+    Route::post('/chungtu', [ChungTuController::class, 'store'])->name('chungtu.store');
+
+
+    
+    // ⚠️ Route show dùng mã hóa Hashid
+    Route::get('/chungtu/{hashid}', [ChungTuController::class, 'showHashid'])->name('chungtu.show.hashid');
+
+    // Còn lại là update + edit + delete
+    Route::get('/chungtu/{chungtu}/edit', [ChungTuController::class, 'edit'])->name('chungtu.edit');
+    Route::put('/chungtu/{chungtu}', [ChungTuController::class, 'update'])->name('chungtu.update');
+    Route::delete('/chungtu/{chungtu}', [ChungTuController::class, 'destroy'])->name('chungtu.destroy');
+
+
+
+    // tạo mới chứng từ
     Route::get('/chungtu/tao-moi/di', [ChungTuController::class, 'createDi'])->name('chungtu.create.di');
     Route::get('/chungtu/tao-moi/noi-bo', [ChungTuController::class, 'createNoiBo'])->name('chungtu.create.noi_bo');
     Route::get('/chungtu/tiep-nhan/den', [ChungTuController::class, 'createDen'])->name('chungtu.create.den');
 
 
-    // caapj nhaatj chuwx ky so
-    Route::post('/chungtu/{id}/kyso', [ChungTuController::class, 'capNhatFileKySo'])->name('chungtu.capnhatFileKySo');
-
-   //BÁO CÁO CHỨNG TỪ
-   Route::get('/chungtu/bao-cao', [App\Http\Controllers\ThongKeChungTuController::class, 'index'])->name('chungtu.baocao');
-
-
-
-    
-
-
-    Route::prefix('nguoinhanchungtu')->group(function () {
-        Route::get('create/{idChungTu}', [NguoiNhanChungTuController::class, 'create'])->name('nguoinhanchungtu.create');
-        Route::post('store/{idChungTu}', [NguoiNhanChungTuController::class, 'store'])->name('nguoinhanchungtu.store');
-        Route::get('chung-tu/{id}/da-gui', [NguoiNhanChungTuController::class, 'showDaGui'])
-        ->name('nguoinhanchungtu.showDaGui');
-    });
-   
 
 
     // Các route danh sách chứng từ theo hướng:
     Route::get('/chung-tu-di', [ChungTuController::class, 'indexDi'])->name('chungtu.index.di');
     Route::get('/chung-tu-noi-bo', [ChungTuController::class, 'indexNoiBo'])->name('chungtu.index.noi_bo');
     Route::get('/chung-tu-den', [ChungTuController::class, 'indexDen'])->name('chungtu.index.den');
+
+    // chứng từ nhận được
+    Route::get('/chung-tu/nhan', [ChungTuController::class, 'danhSachNhan'])->name('chungtu.nhan');
+
+    // caapj nhaatj chuwx ky so
+    Route::post('/chungtu/{id}/kyso', [ChungTuController::class, 'capNhatFileKySo'])->name('chungtu.capnhatFileKySo');
+
+    // Chứng từ
+    Route::resource('chungtu', ChungTuController::class);
+    Route::match(['get', 'post'], '/chung-tu/{chungTu}/xu-ly', [ChungTuController::class, 'xuLyChungTu'])->name('chungtu.xuly');
+    Route::get('/chungtu/view-file/{id}', [ChungTuController::class, 'viewFile'])->name('chungtu.viewFile');
+
+
+
+
+    //BÁO CÁO CHỨNG TỪ
+    Route::get('/chungtu/bao-cao', [App\Http\Controllers\ThongKeChungTuController::class, 'index'])->name('chungtu.baocao');
+
+
+
+
+    Route::prefix('nguoinhanchungtu')->group(function () {
+        Route::get('create/{idChungTu}', [NguoiNhanChungTuController::class, 'create'])->name('nguoinhanchungtu.create');
+        Route::post('store/{idChungTu}', [NguoiNhanChungTuController::class, 'store'])->name('nguoinhanchungtu.store');
+        Route::get('chung-tu/{id}/da-gui', [NguoiNhanChungTuController::class, 'showDaGui'])
+            ->name('nguoinhanchungtu.showDaGui');
+    });
+
 
 
     Route::get('/avatar/{filename}', function ($filename) {
@@ -119,10 +171,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('user.avatar');
 
 
-    // Chứng từ
-    Route::resource('chungtu', ChungTuController::class);
-    Route::match(['get', 'post'], '/chung-tu/{chungTu}/xu-ly', [ChungTuController::class, 'xuLyChungTu'])->name('chungtu.xuly');
-    Route::get('/chungtu/view-file/{id}', [ChungTuController::class, 'viewFile'])->name('chungtu.viewFile');
+
+
     // Đối tác
     Route::resource('doitac', DoiTacController::class);
     //Quy trình xử lý chứng từ
@@ -139,17 +189,21 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth', 'is_admin'])->group(function () {
 
 
+
+
+
+
+
+
+
         // Phòng ban
         Route::resource('phongban', PhongBanController::class);
 
         // Loại chứng từ
         Route::resource('loaichungtu', LoaiChungTuController::class);
 
-
         // Trạng thái chứng từ
         Route::resource('trangthaichungtu', TrangThaiChungTuController::class);
-
-
 
         // Vai trò
         Route::resource('vaitro', VaiTroController::class);

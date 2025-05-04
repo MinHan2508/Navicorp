@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container" >
+    <div class="container">
         <h3 class="mb-4" margin-top="40px">📤 Danh sách chứng từ đã gửi</h3>
 
         {{-- Thông tin tổng quan chứng từ --}}
@@ -71,7 +71,7 @@
                         </ul>
                     @endif
 
-                   
+
                     {{-- Nhóm: Đối tác --}}
                     <h5 class="mt-3">🤝 Đối tác ({{ $doiTacs->count() }})</h5>
                     @if($doiTacs->isEmpty())
@@ -93,7 +93,7 @@
             </div>
         </div>
 
-        <a href="{{ route('chungtu.show', $chungTu->id) }}" class="btn btn-secondary mt-4">
+        <a href="{{ route('chungtu.show.hashid', Hashids::encode($chungTu->id)) }}" class="btn btn-secondary mt-4">
             ← Quay lại chứng từ
         </a>
     </div>

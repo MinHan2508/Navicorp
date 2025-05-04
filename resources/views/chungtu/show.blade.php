@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <div class="container">
+
         {{-- Điều hướng breadcrumb --}}
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-light px-3 py-2 rounded shadow-sm">
@@ -137,7 +138,7 @@
             <form method="POST" action="{{ route('chungtu.xuly', $chungTu->id) }}" id="form-xuly">
                 @csrf
 
-                <div class="d-flex flex-wrap gap-2">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
                     {{-- Hiển thị các bước xử lý --}}
                     @if(isset($quyTrinhXuLy) && $quyTrinhXuLy->count())
                         @foreach ($quyTrinhXuLy as $buoc)
@@ -209,7 +210,8 @@
                         });
                     @endphp
 
-                    @if(in_array($trangThaiHienTai, ['TAO_MOI', 'DA_DUYET_CAP_PHONG']) && $user->coQuyen('tu_choi_chung_tu') && !$daDuyetCapPhong)
+                    @if(in_array($trangThaiHienTai, ['TAO_MOI', 'DA_DUYET_CAP_PHONG']) && $user->coQuyen('tu_choi_chung_tu') && !$daDuyetCapPhong && $chungTu->huong->ma_huong_chung_tu !== 'DEN_LUU_TRU')
+                        {{-- Hiển thị ghi chú từ chối và nút nếu có thể --}}
                         <div id="ghi-chu-container" class="mb-2 w-100">
                             <label for="ghi_chu" class="form-label">📝 Lý do từ chối <span class="text-danger">*</span></label>
                             <textarea id="ghi_chu" name="ghi_chu" class="form-control"
@@ -264,6 +266,7 @@
                         </a>
                     @endif
 
+
                 </div>
             </form>
         </div>
@@ -274,9 +277,19 @@
         {{-- Bao gồm SweetAlert JS --}}
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="{{ asset('js/tu_choi.js') }}"></script>
-        <a href="{{ route('chungtu.viewFile', $chungTu->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-            📄 Xem file
-        </a>
+        <div class="text-center my-4">
+            <a href="{{ route('chungtu.viewFile', $chungTu->id) }}" class="btn btn-lg btn-primary px-5 py-3"
+                target="_blank">
+                📄 Xem / Tải file gốc
+            </a>
+        </div>
+
+        @if($chungTu->duong_dan && isset($signedUrl))
+            <a href="{{ $signedUrl }}" class="btn btn-outline-primary" target="_blank">
+                📥 Tải file
+            </a>
+        @endif
+
     </div>
 
     {{-- Bao gồm modal gửi chứng từ --}}

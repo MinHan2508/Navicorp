@@ -17,6 +17,8 @@
                     'da_ky_so' => 'Đã Ký số',
                     'cho_gui' => 'Chờ Gửi đi',
                     'da_gui' => 'Đã Gửi đi',
+                    'cho_gui_di' => 'Chờ Gửi đi',
+                    'da_ban_hanh' => 'Đã Ban hành',
                     'tu_choi' => 'Bị Từ chối',
                 ];
 
@@ -42,7 +44,7 @@
 
 
 
-            <a href="{{ route('chungtu.create') }}" class="btn btn-success">➕ Tạo mới</a>
+           
         </div>
 
         @if($chungTus->isEmpty())
@@ -134,15 +136,20 @@
                     <label for="den_ngay" class="form-label mb-0 ms-3">Đến ngày:</label>
                     <input type="date" id="den_ngay" name="den_ngay" class="form-control w-auto"
                         value="{{ request('den_ngay') ? \Carbon\Carbon::parse(request('den_ngay'))->format('Y-m-d') : '' }}">
+
+                    <button type="submit" class="btn btn-primary me-2"><i class="bi bi-search"></i> Tìm kiếm</button>
+                    <a href="http://localhost/NAVICORP/public/chungtu" class="btn btn-outline-secondary"><i
+                            class="bi bi-x-circle"></i> Đặt lại</a>
                 </div>
 
 
 
                 {{-- Nút --}}
-                <div class="col-12 text-end mt-2">
+                <!-- <div class="col-12 text-end mt-2">
                     <button type="submit" class="btn btn-primary me-2"><i class="bi bi-search"></i> Tìm kiếm</button>
-                    <a href="{{ route('chungtu.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> Đặt lại</a>
-                </div>
+                    <a href="{{ route('chungtu.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> Đặt
+                        lại</a>
+                </div> -->
 
             </form>
 
@@ -219,6 +226,7 @@
                                             'KY_SO' => 'bg-primary text-white',
                                             'DA_KY_SO' => 'bg-success text-white',
                                             'DA_GUI' => 'bg-info text-white',
+                                            'DA_BAN_HANH' => 'bg-info text-white',
                                             'TU_CHOI' => 'bg-danger text-white',
                                             default => 'bg-secondary text-white',
                                         };
@@ -258,10 +266,26 @@
 
                                 <td class="text-center text-nowrap">
                                     {{-- Nút xem: luôn hiển thị --}}
-                                    <a href="{{ route('chungtu.show', $chungTu->id) }}" class="btn btn-sm btn-outline-info"
-                                        title="Xem">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+
+
+                                    {{-- Nút xem: luôn hiển thị --}}
+
+
+                                    <a href="{{ route('chungtu.show.hashid', $chungTu->hashid) }}"
+                                        class="btn btn-sm btn-outline-primary" title="Xem chi tiết chứng từ">
+                                        <i class="bi bi-eye me-1"></i> </a>
+
+
+                                    {{-- Điều kiện: là người tạo --}}
+
+                                    @php
+
+                                        $laNguoiTao = auth()->id() === $chungTu->id_nguoi_tao;
+
+                                        $maTrangThai = $chungTu->trangThai->ma_trang_thai ?? '';
+
+                                    @endphp
+
 
                                     {{-- Điều kiện: là người tạo --}}
                                     @php

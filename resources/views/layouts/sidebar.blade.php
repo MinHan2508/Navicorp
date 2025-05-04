@@ -93,7 +93,7 @@
         @if(in_array($vaiTro, ['admin', 'giamdoc', 'pho_giamdoc', 'truongphong', 'pho_phong']))
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('doitac.index') }}">
-                    <i class="bi bi-people"></i><span>Nhân sự</span>
+                    <i class="bi bi-people"></i><span>Đối Tác</span>
                 </a>
             </li>
         @endif
@@ -109,6 +109,12 @@
         </li>
 
         <!--  -->
+        <li class="nav-item">
+            <a href="{{ route('chungtu.nhan') }}" class="nav-link d-flex align-items-center gap-2">
+                <i class="bi bi-inbox fs-5 text-primary"></i>
+                <span>Chứng từ gửi đến tôi</span>
+            </a>
+        </li>
 
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#mydoc-nav">
@@ -151,11 +157,13 @@
                 </li>
 
                 {{-- Chờ ký số --}}
-                <li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'cho_ky_so']) }}" class="text-primary fw-semibold">
-                        <i class="bi bi-pen me-2"></i> Chờ ký số
-                    </a>
-                </li>
+                @if(auth()->user()->coQuyen('ky_so'))
+                    <li>
+                        <a href="{{ route('chungtu.index', ['filter' => 'cho_ky_so']) }}" class="text-primary fw-semibold">
+                            <i class="bi bi-pen me-2"></i> Chờ ký số
+                        </a>
+                    </li>
+                @endif
 
                 {{-- Đã ký số --}}
                 <li>
@@ -165,11 +173,13 @@
                 </li>
 
                 {{-- Chờ gửi đi --}}
+                @if(auth()->user()->coQuyen('gui_chung_tu'))
                 <li>
                     <a href="{{ route('chungtu.index', ['filter' => 'cho_gui_di']) }}" class="text-info fw-semibold">
                         <i class="bi bi-send me-2"></i> Chờ gửi đi
                     </a>
                 </li>
+                @endif
 
                 {{-- Đã gửi đi --}}
                 <li>
@@ -179,11 +189,17 @@
                 </li>
 
 
-                {{-- Chờ nhận --}}<li>
-                    <a href="{{ route('chungtu.index', ['filter' => 'cho_ban_hanh']) }}" class="text-purple fw-semibold">
+                {{-- Chờ nhận --}}
+                @if(auth()->user()->coQuyen('ban_hanh_chung_tu'))
+                <li>
+                    <a href="{{ route('chungtu.index', ['filter' => 'cho_ban_hanh']) }}"
+                        class="text-purple fw-semibold">
                         <i class="bi bi-send me-2"></i> Chờ Ban Hành
                     </a>
                 </li>
+                @endif
+
+                {{-- Đã ban hành --}}
 
                 <li>
                     <a href="{{ route('chungtu.index', ['filter' => 'da_ban_hanh']) }}" class="text-purple fw-semibold">
@@ -199,10 +215,6 @@
                         <i class="bi bi-x-circle me-2"></i> Đã từ chối
                     </a>
                 </li>
-
-
-
-
 
 
             </ul>

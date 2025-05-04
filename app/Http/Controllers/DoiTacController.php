@@ -6,12 +6,38 @@ use Illuminate\Http\Request;
 
 class DoiTacController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $doiTacs = DoiTac::latest()->paginate(10);
-        return view('doitac.index', compact('doiTacs'));
+        $query = DoiTac::query();
+    
+        if ($request->filled('ten_doi_tac')) {
+            $query->where('ten_doi_tac', 'like', '%' . $request->ten_doi_tac . '%');
+        }
+    
+        if ($request->filled('loai_doi_tac')) {
+            $query->where('loai_doi_tac', $request->loai_doi_tac);
+        }
+    
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+    
+        if ($request->filled('sdt')) {
+            $query->where('sdt', 'like', '%' . $request->sdt . '%');
+        }
+    
+        if ($request->filled('ma_so_thue')) {
+            $query->where('ma_so_thue', 'like', '%' . $request->ma_so_thue . '%');
+        }
+    
+        if ($request->filled('website')) {
+            $query->where('website', 'like', '%' . $request->website . '%');
+        }
+    
+        $danhSach = $query->paginate(10);
+    
+        return view('doitac.index', compact('danhSach'));
     }
-
 
     public function create()
     {
@@ -29,7 +55,7 @@ class DoiTacController extends Controller
             'ghi_chu'
         ])->get();
 
-        return view('chungtu.create', compact('doiTacs'));
+        return view('doitac.create', compact('doiTacs'));
     }
 
     public function store(Request $request)
